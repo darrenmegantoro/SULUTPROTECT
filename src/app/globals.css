@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-sans: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    /* Offset anchored sections so they aren't hidden behind the sticky navbar. */
+    scroll-padding-top: 7rem;
+  }
+
+  body {
+    @apply bg-white text-bodyTextGray font-sans antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply text-headlineBlack;
+  }
+
+  /* Accessible, visible focus state for keyboard users. */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-linkBlue ring-offset-2 ring-offset-white;
+  }
+}
+
+@layer components {
+  .container-bi {
+    @apply mx-auto w-full max-w-container px-4 sm:px-6 lg:px-8;
+  }
+
+  .hairline {
+    @apply border-hairlineDivider;
+  }
+}
+
+/* Thin, civic-style scrollbar for the chatbot message list. */
+.chat-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #c5cbd6 transparent;
+}
+.chat-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+.chat-scroll::-webkit-scrollbar-thumb {
+  background-color: #c5cbd6;
+  border-radius: 9999px;
+}
