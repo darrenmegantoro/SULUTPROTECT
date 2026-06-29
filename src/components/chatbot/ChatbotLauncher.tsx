@@ -1,9 +1,10 @@
 "use client";
 
-import { MessageCircle, X } from "lucide-react";
+import { X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useChatbot } from "./ChatbotProvider";
 import ChatbotPanel from "./ChatbotPanel";
+import ApisAvatar from "./ApisAvatar";
 import { APIS_NAME, APIS_SHORT } from "@/data/apis";
 
 // Floating launcher (bottom-right) plus the panel it toggles. Mounted once,
@@ -29,7 +30,7 @@ export default function ChatbotLauncher() {
         {isOpen ? (
           <X className="h-5 w-5" aria-hidden="true" />
         ) : (
-          <MessageCircle className="h-5 w-5" aria-hidden="true" />
+          <ApisAvatar size="sm" className="ring-white/40" />
         )}
         <span>{APIS_SHORT}</span>
       </button>

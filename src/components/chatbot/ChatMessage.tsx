@@ -1,10 +1,11 @@
 "use client";
 
-import { Bot, User } from "lucide-react";
+import { User } from "lucide-react";
 import type { ChatMessage as ChatMessageType } from "@/types/faq";
 import { cn } from "@/lib/utils";
 import FAQAnswerCard from "./FAQAnswerCard";
 import SuggestedQuestions from "./SuggestedQuestions";
+import ApisAvatar from "./ApisAvatar";
 
 type ChatMessageProps = {
   message: ChatMessageType;
@@ -33,9 +34,7 @@ export default function ChatMessage({
 
   return (
     <div className="flex items-start gap-2">
-      <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-navyCore/30 bg-white text-navyCore">
-        <Bot className="h-4 w-4" aria-hidden="true" />
-      </span>
+      <ApisAvatar size="sm" className="mt-0.5 ring-navyCore/20" />
       <div
         className={cn(
           "max-w-[85%] rounded-2xl rounded-tl-sm border border-hairlineDivider bg-white px-3.5 py-3 shadow-sm"

@@ -7,6 +7,7 @@ import ChatMessage from "./ChatMessage";
 import SuggestedQuestions from "./SuggestedQuestions";
 import { useChatMessages, SUGGESTED_QUESTIONS } from "./useChatMessages";
 import { APIS_NAME } from "@/data/apis";
+import ApisAvatar from "./ApisAvatar";
 
 export default function ChatbotPanel() {
   const { isOpen, close, pendingQuestion, clearPendingQuestion } = useChatbot();
@@ -53,10 +54,8 @@ export default function ChatbotPanel() {
     >
       {/* Header */}
       <div className="flex items-center justify-between bg-navyCore px-4 py-3 text-white">
-        <div className="flex items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 text-sm font-bold">
-            AP
-          </span>
+        <div className="flex items-center gap-2.5">
+          <ApisAvatar size="md" />
           <div className="leading-tight">
             <p className="max-w-[240px] text-xs font-bold leading-snug sm:text-sm">
               {APIS_NAME}
