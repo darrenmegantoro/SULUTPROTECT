@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import InteractionDetail from "@/components/admin/InteractionDetail";
 import { APIS_NAME, formatInteractionChannel } from "@/data/apis";
 
-const CHANNELS = ["FAQ", "Asisten", "Formulir"] as const;
+const CHANNELS = ["FAQ", "Asisten", "Formulir"];
 const REROUTING: ReroutingStatus[] = [
   "Baru",
   "Perlu Review",
@@ -296,7 +296,7 @@ function Select({
   label: string;
   value: string;
   onChange: (v: string) => void;
-  options: string[];
+  options: readonly string[];
 }) {
   return (
     <div>
