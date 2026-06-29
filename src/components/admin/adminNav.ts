@@ -3,8 +3,6 @@ import {
   MessagesSquare,
   BookOpen,
   ClipboardList,
-  Share2,
-  Settings,
   type LucideIcon,
 } from "lucide-react";
 
@@ -20,6 +18,4 @@ export const ADMIN_NAV: AdminNavItem[] = [
   { label: "Interaksi Pengaduan", href: "/admin/interactions", icon: MessagesSquare },
   { label: "Kelola FAQ", href: "/admin/faq", icon: BookOpen },
   { label: "Kelola Formulir", href: "/admin/form-questions", icon: ClipboardList },
-  { label: "Rerouting Unit", href: "/admin/routing", icon: Share2 },
-  { label: "Pengaturan", href: "/admin/settings", icon: Settings },
 ];
