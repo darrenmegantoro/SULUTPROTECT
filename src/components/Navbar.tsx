@@ -5,13 +5,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { APIS_NAME } from "@/data/apis";
 
 // Primary navigation. Routes are real pages (App Router).
 const NAV_ITEMS = [
   { label: "Beranda", href: "/" },
   { label: "FAQ", href: "/faq" },
   { label: "Mulai Formulir Panduan Pengaduan", href: "/formulir-panduan-pengaduan" },
-  { label: "Asisten", href: "/asisten" },
+  { label: APIS_NAME, href: "/asisten" },
 ];
 
 const BRAND_SUBTITLE =

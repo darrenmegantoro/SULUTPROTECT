@@ -26,6 +26,7 @@ import {
   unansweredQuestions,
 } from "@/data/mockDashboard";
 import { PRIVACY_NOTE } from "@/data/adminConfig";
+import { APIS_NAME } from "@/data/apis";
 import StatCard from "@/components/admin/StatCard";
 import AuditTrail from "@/components/admin/AuditTrail";
 import {
@@ -149,7 +150,7 @@ export default function AdminDashboardPage() {
         </ChartCard>
         <ChartCard
           title="Pertanyaan Belum Terjawab"
-          description="Pertanyaan ke Asisten yang tidak ditemukan di FAQ (kandidat FAQ baru)."
+          description={`Pertanyaan ke ${APIS_NAME} yang tidak ditemukan di FAQ (kandidat FAQ baru).`}
         >
           <BarChart data={unansweredQuestions(records)} />
         </ChartCard>

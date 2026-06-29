@@ -6,6 +6,7 @@ import { useChatbot } from "./ChatbotProvider";
 import ChatMessage from "./ChatMessage";
 import SuggestedQuestions from "./SuggestedQuestions";
 import { useChatMessages, SUGGESTED_QUESTIONS } from "./useChatMessages";
+import { APIS_NAME } from "@/data/apis";
 
 export default function ChatbotPanel() {
   const { isOpen, close, pendingQuestion, clearPendingQuestion } = useChatbot();
@@ -47,17 +48,19 @@ export default function ChatbotPanel() {
   return (
     <div
       role="dialog"
-      aria-label="Asisten — bantuan berbasis FAQ"
+      aria-label={`${APIS_NAME} — bantuan berbasis FAQ`}
       className="fixed bottom-24 right-4 z-50 flex h-[min(560px,calc(100vh-8rem))] w-[min(380px,calc(100vw-2rem))] flex-col overflow-hidden rounded-xl border border-hairlineDivider bg-offWhiteSection shadow-panel animate-slide-up sm:right-6"
     >
       {/* Header */}
       <div className="flex items-center justify-between bg-navyCore px-4 py-3 text-white">
         <div className="flex items-center gap-2">
           <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 text-sm font-bold">
-            A
+            AP
           </span>
           <div className="leading-tight">
-            <p className="text-sm font-bold">Asisten</p>
+            <p className="max-w-[240px] text-xs font-bold leading-snug sm:text-sm">
+              {APIS_NAME}
+            </p>
             <p className="text-[11px] text-white/70">Jawaban berdasarkan FAQ</p>
           </div>
         </div>
@@ -74,7 +77,7 @@ export default function ChatbotPanel() {
           <button
             type="button"
             onClick={close}
-            aria-label="Tutup Asisten"
+            aria-label={`Tutup ${APIS_NAME}`}
             className="rounded-md p-1.5 text-white/80 transition-colors hover:bg-white/10 hover:text-white"
           >
             <X className="h-4 w-4" aria-hidden="true" />

@@ -12,6 +12,7 @@ import type { GuidedResult, ResultBadgeTone } from "@/types/guidedForm";
 import { cn } from "@/lib/utils";
 import { FRAUD_DEFINITION, mentionsFraud } from "@/data/glossary";
 import { useChatbot } from "@/components/chatbot/ChatbotProvider";
+import { APIS_ASK_LABEL, APIS_NAME } from "@/data/apis";
 
 type ResultCardProps = {
   result: GuidedResult;
@@ -148,7 +149,7 @@ export default function ResultCard({ result }: ResultCardProps) {
             Masih butuh penjelasan?
           </p>
           <p className="mt-1 text-sm text-bodyTextGray">
-            Tanyakan kepada Asisten atau baca FAQ terkait sebelum melanjutkan.
+            Tanyakan kepada {APIS_NAME} atau baca FAQ terkait sebelum melanjutkan.
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             <button
@@ -157,7 +158,7 @@ export default function ResultCard({ result }: ResultCardProps) {
               className="inline-flex items-center gap-1.5 rounded-subtle bg-navyCore px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-navyDeep"
             >
               <MessageCircle className="h-3.5 w-3.5" aria-hidden="true" />
-              Tanya Asisten
+              {APIS_ASK_LABEL}
             </button>
             <Link
               href="/faq"

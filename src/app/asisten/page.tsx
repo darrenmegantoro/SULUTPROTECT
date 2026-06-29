@@ -8,6 +8,7 @@ import {
   useChatMessages,
   SUGGESTED_QUESTIONS,
 } from "@/components/chatbot/useChatMessages";
+import { APIS_NAME } from "@/data/apis";
 
 export default function AsistenPage() {
   const { messages, sendQuestion, reset, isFresh } = useChatMessages();
@@ -29,7 +30,7 @@ export default function AsistenPage() {
     <section className="bg-offWhiteSection py-10 sm:py-14">
       <div className="container-bi max-w-3xl">
         <h1 className="text-2xl font-bold text-headlineBlack sm:text-[28px]">
-          Asisten
+          {APIS_NAME}
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-bodyTextGray">
           Ajukan pertanyaan berdasarkan FAQ SULUT PROTECT untuk mendapatkan
@@ -41,10 +42,10 @@ export default function AsistenPage() {
           <div className="flex items-center justify-between bg-navyCore px-4 py-3 text-white">
             <div className="flex items-center gap-2">
               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 text-sm font-bold">
-                A
+                AP
               </span>
               <div className="leading-tight">
-                <p className="text-sm font-bold">Asisten</p>
+                <p className="text-sm font-bold">{APIS_NAME}</p>
                 <p className="text-[11px] text-white/70">
                   Jawaban berdasarkan FAQ
                 </p>

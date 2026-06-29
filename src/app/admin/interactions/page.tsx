@@ -12,8 +12,9 @@ import {
 } from "@/data/adminConfig";
 import { cn } from "@/lib/utils";
 import InteractionDetail from "@/components/admin/InteractionDetail";
+import { APIS_NAME, formatInteractionChannel } from "@/data/apis";
 
-const CHANNELS = ["FAQ", "Asisten", "Formulir"];
+const CHANNELS = ["FAQ", "Asisten", "Formulir"] as const;
 const REROUTING: ReroutingStatus[] = [
   "Baru",
   "Perlu Review",
@@ -92,7 +93,7 @@ export default function AdminInteractionsPage() {
       filtered.map((r) => ({
         ID: r.id,
         Waktu: formatDateTime(r.createdAt),
-        Kanal: r.channel,
+        Kanal: formatInteractionChannel(r.channel),
         Kategori: r.category ?? "",
         Query: r.query ?? "",
         Ringkasan: r.answerSummary ?? "",
@@ -125,7 +126,8 @@ export default function AdminInteractionsPage() {
             Interaksi Pengaduan
           </h1>
           <p className="mt-1 text-sm text-bodyTextGray">
-            Pantau interaksi dari FAQ, Asisten, dan Formulir Panduan Pengaduan.
+            Pantau interaksi dari FAQ, {APIS_NAME}, dan Formulir Panduan
+            Pengaduan.
           </p>
         </div>
         <button
@@ -216,7 +218,7 @@ export default function AdminInteractionsPage() {
                 <td className="px-4 py-3 text-xs text-bodyTextGray">
                   {formatDateTime(r.createdAt)}
                 </td>
-                <td className="px-4 py-3">{r.channel}</td>
+                <td className="px-4 py-3">{formatInteractionChannel(r.channel)}</td>
                 <td className="px-4 py-3 text-bodyTextGray">{r.category ?? "-"}</td>
                 <td className="px-4 py-3 text-bodyTextGray">
                   {r.resultRecommendation ?? "-"}
@@ -309,7 +311,7 @@ function Select({
         <option value="">Semua</option>
         {options.map((o) => (
           <option key={o} value={o}>
-            {o}
+            {formatInteractionChannel(o)}
           </option>
         ))}
       </select>

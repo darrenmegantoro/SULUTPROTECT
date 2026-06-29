@@ -7,9 +7,9 @@ import { summarizeAnswer, uid } from "@/lib/utils";
 import { FRAUD_DEFINITION, mentionsFraud } from "@/data/glossary";
 import { focusLabel } from "@/data/faq";
 import { captureInteraction } from "@/lib/interactionCapture";
+import { APIS_NAME } from "@/data/apis";
 
-export const WELCOME_TEXT =
-  "Halo, saya Asisten. Saya dapat membantu Anda mencari informasi dari FAQ terkait pengaduan Konsumen, dokumen, batas waktu, kanal BI Bicara, LAPS SJK, dan proses penanganan pengaduan oleh Bank Indonesia.";
+export const WELCOME_TEXT = `Halo, saya ${APIS_NAME}. Saya dapat membantu Anda mencari informasi dari FAQ terkait pengaduan Konsumen, dokumen, batas waktu, kanal BI Bicara, LAPS SJK, dan proses penanganan pengaduan oleh Bank Indonesia.`;
 
 export const FALLBACK_TEXT =
   "Maaf, saya belum menemukan jawaban yang sesuai di FAQ. Silakan coba gunakan kata kunci lain, buka halaman FAQ, atau hubungi BI Bicara untuk memperoleh edukasi lebih lanjut.";

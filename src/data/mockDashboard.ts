@@ -1,4 +1,5 @@
 import type { InteractionRecord } from "@/types/admin";
+import { formatInteractionChannel } from "@/data/apis";
 
 export type Bucket = { label: string; value: number };
 
@@ -31,7 +32,10 @@ export function byCategory(records: InteractionRecord[]): Bucket[] {
 }
 
 export function byChannel(records: InteractionRecord[]): Bucket[] {
-  return tally(records, (r) => r.channel);
+  return tally(records, (r) => r.channel).map((bucket) => ({
+    ...bucket,
+    label: formatInteractionChannel(bucket.label),
+  }));
 }
 
 export function byLocation(records: InteractionRecord[]): Bucket[] {

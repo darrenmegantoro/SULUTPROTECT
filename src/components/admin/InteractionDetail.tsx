@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 import type { InteractionRecord, ReroutingStatus } from "@/types/admin";
 import { updateInteraction } from "@/lib/adminStore";
 import { ADMIN_UNITS } from "@/data/adminConfig";
+import { formatInteractionChannel } from "@/data/apis";
 
 const REROUTING: ReroutingStatus[] = [
   "Baru",
@@ -75,7 +76,7 @@ export default function InteractionDetail({
 
         <div className="space-y-4 px-5 py-4">
           <div className="divide-y divide-hairlineDivider">
-            <Row label="Kanal" value={record.channel} />
+            <Row label="Kanal" value={formatInteractionChannel(record.channel)} />
             <Row label="Kategori" value={record.category} />
             <Row label="Query / Pertanyaan" value={record.query} />
             <Row

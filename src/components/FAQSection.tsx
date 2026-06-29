@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { ChevronDown, MessageCircle, Search, ExternalLink } from "lucide-react";
 import { FAQ_FOCUS_FILTERS, FAQ_ITEMS, focusLabel } from "@/data/faq";
 import { FRAUD_DEFINITION, mentionsFraud } from "@/data/glossary";
+import { APIS_ASK_LABEL, APIS_NAME } from "@/data/apis";
 import { searchFaq, getRelatedCTA } from "@/lib/faqSearch";
 import { captureInteraction } from "@/lib/interactionCapture";
 import { cn } from "@/lib/utils";
@@ -120,7 +121,7 @@ export default function FAQSection({ initialQuery = "" }: FAQSectionProps) {
             <div className="py-10 text-center">
               <p className="text-sm text-bodyTextGray">
                 Tidak ada FAQ yang cocok. Coba kata kunci lain atau tanyakan
-                kepada Asisten.
+                kepada {APIS_NAME}.
               </p>
               {query.trim() ? (
                 <button
@@ -129,7 +130,7 @@ export default function FAQSection({ initialQuery = "" }: FAQSectionProps) {
                   className="mt-3 inline-flex items-center gap-1.5 rounded-subtle bg-navyCore px-4 py-2 text-xs font-semibold text-white hover:bg-navyDeep"
                 >
                   <MessageCircle className="h-3.5 w-3.5" aria-hidden="true" />
-                  Tanya Asisten
+                  {APIS_ASK_LABEL}
                 </button>
               ) : null}
             </div>
@@ -200,7 +201,7 @@ export default function FAQSection({ initialQuery = "" }: FAQSectionProps) {
                           className="h-3.5 w-3.5"
                           aria-hidden="true"
                         />
-                        Tanya Asisten
+                        {APIS_ASK_LABEL}
                       </button>
                       {cta ? (
                         <a
