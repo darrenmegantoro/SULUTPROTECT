@@ -9,13 +9,10 @@ import { APIS_NAME } from "@/data/apis";
 
 const NAV_ITEMS = [
   { label: "Beranda", href: "/" },
-  {
-    label: "Mulai Formulir Panduan Pengaduan",
-    href: "/formulir-panduan-pengaduan",
-  },
+  { label: "Formulir Panduan Pengaduan", href: "/formulir-panduan-pengaduan" },
   { label: "FAQ", href: "/faq" },
   { label: APIS_NAME, href: "/asisten" },
-  { label: "Login Admin", href: "/login" },
+  { label: "Admin", href: "/login" },
 ];
 
 const BRAND_SUBTITLE =
@@ -47,14 +44,14 @@ export default function Navbar() {
           </span>
         </Link>
 
-        <div className="hidden items-center gap-2 xl:flex">
+        <div className="hidden items-center gap-1.5 lg:flex lg:flex-nowrap">
           {NAV_ITEMS.map((item) => (
             <Link
               key={item.label}
               href={item.href}
               aria-current={isActive(item.href) ? "page" : undefined}
               className={cn(
-                "rounded-subtle border px-3 py-2 text-sm font-semibold transition-colors",
+                "whitespace-nowrap rounded-subtle border px-2.5 py-1.5 text-[11px] font-semibold leading-tight transition-colors xl:px-3 xl:py-2 xl:text-xs",
                 isActive(item.href)
                   ? "border-navyCore bg-navyCore text-white"
                   : "border-navyCore/30 bg-white text-navyCore hover:border-navyCore hover:bg-offWhiteSection"
@@ -67,7 +64,7 @@ export default function Navbar() {
 
         <button
           type="button"
-          className="inline-flex items-center justify-center rounded-md p-2 text-navyCore xl:hidden"
+          className="inline-flex items-center justify-center rounded-md p-2 text-navyCore lg:hidden"
           aria-expanded={mobileOpen}
           aria-label={mobileOpen ? "Tutup menu" : "Buka menu"}
           onClick={() => setMobileOpen((v) => !v)}
@@ -80,7 +77,7 @@ export default function Navbar() {
         </button>
       </nav>
 
-      <div className={cn("xl:hidden", mobileOpen ? "block" : "hidden")}>
+      <div className={cn("lg:hidden", mobileOpen ? "block" : "hidden")}>
         <div className="container-bi flex flex-col gap-2 border-t border-hairlineDivider py-3">
           {NAV_ITEMS.map((item) => (
             <Link

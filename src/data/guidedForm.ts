@@ -17,8 +17,8 @@ export const BI_DOCUMENT_CHECKLIST: ChecklistItem[] = [
   {
     label:
       "Surat pernyataan bermeterai cukup bahwa permasalahan yang diajukan merupakan masalah perdata yang tidak pernah diproses oleh pengadilan, lembaga atau badan penyelesaian sengketa, atau otoritas yang berwenang lainnya",
-    cta: {
-      label: "Surat Pernyataan",
+    inlineLink: {
+      phrase: "Surat pernyataan",
       href: EXTERNAL_LINKS.suratPernyataan,
     },
   },
@@ -248,10 +248,15 @@ export const GUIDED_RESULTS: Record<ResultKey, GuidedResult> = {
     badgeTone: "warning",
     title: "Pengaduan melewati batas waktu pengajuan.",
     description:
-      "Pengaduan terkait kerugian finansial atau potensi kerugian finansial diajukan kepada Bank Indonesia paling lama 60 hari kerja sejak tanggal penyampaian hasil penyelesaian pengaduan secara tertulis dari Penyelenggara kepada Konsumen. Jika sudah melewati batas waktu tersebut, pengaduan tidak memenuhi ketentuan batas waktu untuk diproses melalui mekanisme ini. Konsumen dapat membaca FAQ terkait batas waktu dan, apabila permasalahan merupakan sengketa sektor jasa keuangan yang memenuhi persyaratan, dapat mempertimbangkan penyelesaian melalui LAPS SJK sesuai ketentuan yang berlaku.",
+      "Pengaduan terkait kerugian finansial atau potensi kerugian finansial diajukan kepada Bank Indonesia paling lama 60 hari kerja sejak tanggal penyampaian hasil penyelesaian pengaduan secara tertulis dari Penyelenggara kepada Konsumen. Jika sudah melewati batas waktu tersebut, pengaduan tidak memenuhi ketentuan batas waktu untuk diproses melalui mekanisme ini. Konsumen dapat membaca FAQ terkait batas waktu dan, apabila permasalahan merupakan sengketa sektor jasa keuangan yang memenuhi persyaratan, dapat mempertimbangkan penyelesaian melalui Lembaga Alternatif Penyelesaian Sengketa Sektor Jasa Keuangan (LAPS SJK) sesuai ketentuan yang berlaku.",
     ctas: [
-      { label: "Baca FAQ Batas Waktu", to: "/faq" },
-      { label: "Lihat LAPS SJK", href: EXTERNAL_LINKS.lapsSjk },
+      {
+        label:
+          "Lihat Lembaga Alternatif Penyelesaian Sengketa Sektor Jasa Keuangan (LAPS SJK)",
+        href: EXTERNAL_LINKS.lapsSjk,
+        variant: "primary",
+      },
+      { label: "Baca FAQ Batas Waktu", to: "/faq", variant: "secondary" },
     ],
     askQuestion: "Apa batas waktu pengaduan ke Bank Indonesia?",
     relatedFocus: "Kerugian Konsumen",
@@ -264,8 +269,8 @@ export const GUIDED_RESULTS: Record<ResultKey, GuidedResult> = {
     description:
       "Untuk pengaduan kerugian finansial atau potensi kerugian finansial, permasalahan yang diajukan harus merupakan masalah perdata. Jika terdapat dugaan tindak pidana, penipuan, pemalsuan, atau kejahatan siber, Anda dapat menyampaikan laporan kepada aparat penegak hukum melalui kanal resmi yang tersedia.",
     ctas: [
-      { label: "Lihat PolriSiber", href: EXTERNAL_LINKS.polriSiber },
-      { label: "Baca FAQ Persyaratan Pengaduan", to: "/faq" },
+      { label: "Lihat PolriSiber", href: EXTERNAL_LINKS.polriSiber, variant: "primary" },
+      { label: "Baca FAQ Persyaratan Pengaduan", to: "/faq", variant: "secondary" },
     ],
     askQuestion: "Apa syarat pengaduan kerugian finansial ke Bank Indonesia?",
     relatedFocus: "Kerugian Konsumen",
@@ -288,7 +293,7 @@ export const GUIDED_RESULTS: Record<ResultKey, GuidedResult> = {
     title: "Pengaduan tidak dapat diproses melalui mekanisme ini.",
     description:
       "Pengaduan kepada Bank Indonesia untuk kategori kerugian finansial atau potensi kerugian finansial harus merupakan masalah perdata yang belum pernah diproses oleh pengadilan, lembaga atau badan penyelesaian sengketa, atau otoritas berwenang lainnya. Jika sudah pernah diproses, silakan lanjutkan melalui mekanisme pada lembaga atau otoritas tersebut.",
-    ctas: [{ label: "Baca FAQ Persyaratan Pengaduan", to: "/faq" }],
+    ctas: [{ label: "Baca FAQ Persyaratan Pengaduan", to: "/faq", variant: "secondary" }],
     askQuestion: "Apa syarat pengaduan kerugian finansial ke Bank Indonesia?",
     relatedFocus: "Kerugian Konsumen",
   },
@@ -298,10 +303,15 @@ export const GUIDED_RESULTS: Record<ResultKey, GuidedResult> = {
     badgeTone: "redirect",
     title: "Pengaduan tidak dapat difasilitasi ulang.",
     description:
-      "Pengaduan yang sudah pernah diupayakan penyelesaiannya oleh Bank Indonesia melalui fasilitasi tidak dapat diproses ulang. Jika dalam fasilitasi sebelumnya tidak tercapai kesepakatan, Konsumen dan Penyelenggara dapat menempuh upaya penyelesaian melalui LAPS SJK atau pengadilan.",
+      "Pengaduan yang sudah pernah diupayakan penyelesaiannya oleh Bank Indonesia melalui fasilitasi tidak dapat diproses ulang. Jika dalam fasilitasi sebelumnya tidak tercapai kesepakatan, Konsumen dan Penyelenggara dapat menempuh upaya penyelesaian melalui Lembaga Alternatif Penyelesaian Sengketa Sektor Jasa Keuangan (LAPS SJK) atau pengadilan.",
     ctas: [
-      { label: "Lihat LAPS SJK", href: EXTERNAL_LINKS.lapsSjk },
-      { label: "Baca FAQ Fasilitasi BI", to: "/faq" },
+      {
+        label:
+          "Lihat Lembaga Alternatif Penyelesaian Sengketa Sektor Jasa Keuangan (LAPS SJK)",
+        href: EXTERNAL_LINKS.lapsSjk,
+        variant: "primary",
+      },
+      { label: "Baca FAQ Fasilitasi BI", to: "/faq", variant: "secondary" },
     ],
     askQuestion: "Apakah fasilitasi Bank Indonesia dapat dilakukan lebih dari sekali?",
     relatedFocus: "Sengketa dengan Lembaga Keuangan",
@@ -313,14 +323,25 @@ export const GUIDED_RESULTS: Record<ResultKey, GuidedResult> = {
     title: "Pengaduan dapat diarahkan ke BI Bicara.",
     description:
       "Berdasarkan nilai kerugian yang Anda masukkan, pengaduan dapat diarahkan ke kanal Bank Indonesia sepanjang seluruh persyaratan lain terpenuhi. Pastikan Anda telah menyampaikan pengaduan kepada Penyelenggara, menerima hasil penyelesaian tertulis, dan masih berada dalam batas waktu pengajuan. Konsumen dapat mengajukan permintaan fasilitasi secara tertulis dengan mengisi Formulir Pengajuan Fasilitasi. Dalam proses fasilitasi, Konsumen juga perlu menaati dan menandatangani Tata Tertib Pelaksanaan Fasilitasi.",
+    descriptionLinks: [
+      {
+        phrase: "Formulir Pengajuan Fasilitasi",
+        href: EXTERNAL_LINKS.formulirFasilitasi,
+      },
+      {
+        phrase: "Tata Tertib Pelaksanaan Fasilitasi",
+        href: EXTERNAL_LINKS.tataTertib,
+      },
+    ],
     checklist: BI_DOCUMENT_CHECKLIST,
     ctas: [
-      { label: "Lanjut ke BI Bicara", href: EXTERNAL_LINKS.biBicara },
+      { label: "Lanjut ke BI Bicara", href: EXTERNAL_LINKS.biBicara, variant: "primary" },
       {
         label: "Formulir Pengajuan Fasilitasi",
         href: EXTERNAL_LINKS.formulirFasilitasi,
+        variant: "primary",
       },
-      { label: "Tata Tertib", href: EXTERNAL_LINKS.tataTertib },
+      { label: "Tata Tertib", href: EXTERNAL_LINKS.tataTertib, variant: "primary" },
     ],
     askQuestion: "Dokumen apa yang perlu disiapkan sebelum ke BI Bicara?",
     relatedFocus: "Kerugian Konsumen",
@@ -331,10 +352,15 @@ export const GUIDED_RESULTS: Record<ResultKey, GuidedResult> = {
     badgeTone: "redirect",
     title: "Nilai kerugian melebihi batas penanganan BI untuk bidang ini.",
     description:
-      "Nilai kerugian finansial atau potensi kerugian finansial yang Anda masukkan melebihi batas yang berlaku untuk bidang Penyelenggara atau pelaku terkait yang Anda pilih. Pengaduan dapat dipertimbangkan untuk penyelesaian melalui LAPS SJK atau jalur penyelesaian lain sesuai ketentuan yang berlaku, apabila seluruh persyaratan terpenuhi.",
+      "Nilai kerugian finansial atau potensi kerugian finansial yang Anda masukkan melebihi batas yang berlaku untuk bidang Penyelenggara atau pelaku terkait yang Anda pilih. Pengaduan dapat dipertimbangkan untuk penyelesaian melalui Lembaga Alternatif Penyelesaian Sengketa Sektor Jasa Keuangan (LAPS SJK) atau jalur penyelesaian lain sesuai ketentuan yang berlaku, apabila seluruh persyaratan terpenuhi.",
     ctas: [
-      { label: "Lihat LAPS SJK", href: EXTERNAL_LINKS.lapsSjk },
-      { label: "Baca FAQ Batas Nilai Kerugian", to: "/faq" },
+      {
+        label:
+          "Lihat Lembaga Alternatif Penyelesaian Sengketa Sektor Jasa Keuangan (LAPS SJK)",
+        href: EXTERNAL_LINKS.lapsSjk,
+        variant: "primary",
+      },
+      { label: "Baca FAQ Batas Nilai Kerugian", to: "/faq", variant: "secondary" },
     ],
     askQuestion: "Kapan pengaduan diarahkan ke LAPS SJK?",
     relatedFocus: "Kerugian Konsumen",

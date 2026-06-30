@@ -59,18 +59,22 @@ export type ResultBadgeTone =
   | "neutral"
   | "redirect";
 
+export type DescriptionLink = {
+  phrase: string;
+  href: string;
+};
+
 export type ResultCTA = {
   label: string;
-  // External URL (opens in a new tab).
   href?: string;
-  // Internal route target (e.g. "/faq"), navigated with next/link.
   to?: string;
-  // When true, this CTA opens the Asisten chatbot.
   askAsisten?: boolean;
+  variant?: "primary" | "secondary";
 };
 
 export type ChecklistItem = {
   label: string;
+  inlineLink?: DescriptionLink;
   cta?: { label: string; href: string };
 };
 
@@ -80,6 +84,7 @@ export type GuidedResult = {
   badgeTone: ResultBadgeTone;
   title: string;
   description: string;
+  descriptionLinks?: DescriptionLink[];
   checklist?: ChecklistItem[];
   infoBadge?: string;
   note?: string;

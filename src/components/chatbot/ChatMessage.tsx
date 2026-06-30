@@ -43,10 +43,31 @@ export default function ChatMessage({
         {message.variant === "answer" ? (
           <FAQAnswerCard
             content={message.content}
+            structuredAnswer={message.structuredAnswer}
             source={message.source}
             reference={message.reference}
             cta={message.relatedCTA}
           />
+        ) : message.variant === "fallback" ? (
+          <div className="space-y-3">
+            <p className="whitespace-pre-line text-sm leading-relaxed text-headlineBlack">
+              {message.content}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <a
+                href="/faq"
+                className="inline-flex items-center rounded-subtle border border-navyCore px-3 py-1.5 text-xs font-semibold text-navyCore hover:bg-offWhiteSection"
+              >
+                Buka FAQ
+              </a>
+              <a
+                href="/formulir-panduan-pengaduan"
+                className="inline-flex items-center rounded-subtle bg-navyCore px-3 py-1.5 text-xs font-semibold text-white hover:bg-navyDeep"
+              >
+                Formulir Panduan Pengaduan
+              </a>
+            </div>
+          </div>
         ) : (
           <p className="whitespace-pre-line text-sm leading-relaxed text-headlineBlack">
             {message.content}

@@ -1,0 +1,160 @@
+import type { FaqBloomItem } from "@/types/faqBloom";
+
+export const FAQ_BLOOM_PELANGGARAN: FaqBloomItem[] = [
+  {
+    id: 43,
+    kategori: "Pelanggaran Ketentuan",
+    kompetensiInti:
+      "Mengidentifikasi indikasi pelanggaran ketentuan, membedakan pelanggaran administratif dengan sengketa/pidana, dan menyusun laporan berbasis fakta.",
+    bloomTaxonomy: "Remember",
+    levelKemahiran: "L1 - Mengingat",
+    indikatorPerilaku:
+      "Konsumen mampu mengenali prinsip Pelindungan Konsumen yang wajib diperhatikan Penyelenggara.",
+    pertanyaan:
+      "Apa saja prinsip Pelindungan Konsumen yang harus diperhatikan Penyelenggara?",
+    jawaban:
+      "Prinsip Pelindungan Konsumen meliputi kesetaraan dan perlakuan yang adil, keterbukaan dan transparansi, edukasi dan literasi, perilaku bisnis yang bertanggung jawab, perlindungan aset Konsumen terhadap penyalahgunaan, perlindungan data dan/atau informasi Konsumen, penanganan pengaduan yang efektif, serta penegakan kepatuhan.",
+    basisHukumUtama: "PADG BI No. 20 Tahun 2023",
+    check: "V",
+  },
+  {
+    id: 44,
+    kategori: "Pelanggaran Ketentuan",
+    kompetensiInti:
+      "Mengidentifikasi indikasi pelanggaran ketentuan, membedakan pelanggaran administratif dengan sengketa/pidana, dan menyusun laporan berbasis fakta.",
+    bloomTaxonomy: "Understand",
+    levelKemahiran: "L2 - Understand",
+    indikatorPerilaku:
+      "Konsumen mampu mengetahui jangka waktu penanganan pengaduan indikasi pelanggaran atau kerugian finansial.",
+    pertanyaan:
+      "Berapa lama penanganan pengaduan indikasi pelanggaran atau kerugian finansial?",
+    jawaban:
+      "Penyelesaian pengaduan terkait indikasi pelanggaran ketentuan atau kerugian finansial dilakukan paling lama 20 hari kerja setelah diterimanya pengaduan yang disertai dokumen pendukung. Dalam kondisi tertentu, jangka waktu dapat diperpanjang paling lama 20 hari kerja berikutnya.",
+    basisHukumUtama: "PADG BI No. 20 Tahun 2023",
+    check: "V",
+  },
+  {
+    id: 45,
+    kategori: "Pelanggaran Ketentuan",
+    kompetensiInti:
+      "Mengidentifikasi indikasi pelanggaran ketentuan, membedakan pelanggaran administratif dengan sengketa/pidana, dan menyusun laporan berbasis fakta.",
+    bloomTaxonomy: "Apply",
+    levelKemahiran: "L3 - Menerapkan",
+    indikatorPerilaku:
+      "Konsumen mampu menyiapkan dokumen untuk pengaduan indikasi pelanggaran ketentuan.",
+    pertanyaan: "Dokumen apa yang diminta BI untuk pengaduan indikasi pelanggaran ketentuan?",
+    jawaban:
+      "Untuk pengaduan dengan klasifikasi indikasi pelanggaran terhadap Peraturan Bank Indonesia, Bank Indonesia dapat meminta Konsumen melengkapi dokumen berupa fotokopi bukti identitas diri, fotokopi surat kuasa (apabila pengaduan diajukan melalui kuasa), kronologis kejadian, dan dokumen pendukung lainnya yang relevan dengan pengaduan.",
+    basisHukumUtama: "PADG Intern Nomor 19 Tahun 2024",
+    check: "V",
+  },
+  {
+    id: 46,
+    kategori: "Pelanggaran Ketentuan",
+    kompetensiInti:
+      "Mengidentifikasi indikasi pelanggaran ketentuan, membedakan pelanggaran administratif dengan sengketa/pidana, dan menyusun laporan berbasis fakta.",
+    bloomTaxonomy: "Analyze",
+    levelKemahiran: "L4 - Menganalisis",
+    indikatorPerilaku:
+      "Konsumen mampu mengidentifikasi kondisi yang mewajibkan Penyelenggara melakukan Penolakan Transaksi.",
+    pertanyaan: "Kapan Penyelenggara Penerima Dana wajib melakukan Penolakan Transaksi?",
+    jawaban:
+      "Penolakan Transaksi dilakukan jika data identitas Penerima Dana tidak benar atau terindikasi fraud. Penolakan juga dilakukan jika data identitas benar, tetapi Penerima Dana tidak berhasil dihubungi dan dari hasil verifikasi terindikasi kuat melakukan fraud. Fraud adalah penipuan, pengelabuan, manipulasi dan/atau pengambilalihan rekening/akun dengan menggunakan berbagai modus operandi dan dapat menimbulkan kerugian.",
+    basisHukumUtama: "Ketentuan ASPI penanganan transfer dana terindikasi fraud",
+    check: "V",
+  },
+  {
+    id: 47,
+    kategori: "Pelanggaran Ketentuan",
+    kompetensiInti:
+      "Mengidentifikasi indikasi pelanggaran ketentuan, membedakan pelanggaran administratif dengan sengketa/pidana, dan menyusun laporan berbasis fakta.",
+    bloomTaxonomy: "Analyze",
+    levelKemahiran: "L4 - Menganalisis",
+    indikatorPerilaku:
+      "Konsumen mampu membedakan klasifikasi pengaduan kepada BI berdasarkan jenis masalahnya.",
+    pertanyaan: "Bagaimana Bank Indonesia mengklasifikasikan pengaduan Konsumen?",
+    jawaban:
+      "Pengaduan Konsumen kepada Bank Indonesia diklasifikasikan menjadi pengaduan karena ketidakpahaman Konsumen, indikasi pelanggaran terhadap Peraturan Bank Indonesia yang dilakukan oleh Penyelenggara, atau kerugian finansial dan/atau potensi kerugian finansial yang wajar dan berdampak secara langsung kepada Konsumen.",
+    basisHukumUtama: "PADG BI No. 20 Tahun 2023",
+    check: "V",
+  },
+  {
+    id: 48,
+    kategori: "Pelanggaran Ketentuan",
+    kompetensiInti:
+      "Mengidentifikasi indikasi pelanggaran ketentuan, membedakan pelanggaran administratif dengan sengketa/pidana, dan menyusun laporan berbasis fakta.",
+    bloomTaxonomy: "Analyze",
+    levelKemahiran: "L4 - Menganalisis",
+    indikatorPerilaku:
+      "Konsumen mampu membedakan indikasi pelanggaran ketentuan dari ketidakpuasan layanan biasa.",
+    pertanyaan: "Apa bedanya dugaan pelanggaran ketentuan dan sekadar tidak puas dengan layanan?",
+    jawaban:
+      "Ketidakpuasan layanan dapat berupa keluhan atas kualitas pelayanan atau hasil penyelesaian. Dugaan pelanggaran ketentuan muncul jika ada indikasi penyelenggara tidak memenuhi kewajiban yang diatur, misalnya informasi tidak jelas atau menyesatkan, penanganan pengaduan tidak efektif, pelindungan data/aset diabaikan, atau kewajiban regulator lainnya tidak dipenuhi. Bukti dan kronologi tetap diperlukan.",
+    basisHukumUtama:
+      "PBI No. 3 Tahun 2023; PADG BI No. 20 Tahun 2023; POJK No. 22 Tahun 2023",
+    check: "V",
+  },
+  {
+    id: 49,
+    kategori: "Pelanggaran Ketentuan",
+    kompetensiInti:
+      "Mengidentifikasi indikasi pelanggaran ketentuan, membedakan pelanggaran administratif dengan sengketa/pidana, dan menyusun laporan berbasis fakta.",
+    bloomTaxonomy: "Evaluate",
+    levelKemahiran: "L5 - Mengevaluasi",
+    indikatorPerilaku:
+      "Konsumen mampu menilai dugaan ketidakpatuhan Penyelenggara terhadap ketentuan penanganan.",
+    pertanyaan: "Apa yang dapat dilakukan jika penyelenggara tidak menjalankan ketentuan penanganan?",
+    jawaban:
+      "Ketentuan ini mengatur kewajiban Penyelenggara dalam memeriksa laporan, melakukan penundaan, verifikasi, penolakan, pelaporan, dan pengembalian dana sesuai kondisi tertentu. Apabila terdapat dugaan ketidakpatuhan, konsumen dapat meminta penjelasan tindak lanjut kepada penyelenggara berdasarkan tahapan penanganan yang diatur.",
+    basisHukumUtama: "Ketentuan ASPI penanganan transfer dana terindikasi fraud",
+    check: "V",
+  },
+  {
+    id: 50,
+    kategori: "Pelanggaran Ketentuan",
+    kompetensiInti:
+      "Mengidentifikasi indikasi pelanggaran ketentuan, membedakan pelanggaran administratif dengan sengketa/pidana, dan menyusun laporan berbasis fakta.",
+    bloomTaxonomy: "Evaluate",
+    levelKemahiran: "L5 - Mengevaluasi",
+    indikatorPerilaku:
+      "Konsumen mampu menilai haknya untuk memperoleh informasi apabila penanganan pengaduan diperpanjang.",
+    pertanyaan: "Apakah perpanjangan waktu penanganan akan diinformasikan kepada Konsumen?",
+    jawaban:
+      "Ya. Apabila terdapat kondisi tertentu sehingga jangka waktu penyelesaian pengaduan perlu diperpanjang, perpanjangan waktu penyelesaian tersebut diinformasikan oleh KPwDN kepada Konsumen sebelum batas waktu 20 hari kerja pertama berakhir.",
+    basisHukumUtama: "PADG BI No. 20 Tahun 2023",
+    check: "V",
+  },
+  {
+    id: 51,
+    kategori: "Pelanggaran Ketentuan",
+    kompetensiInti:
+      "Mengidentifikasi indikasi pelanggaran ketentuan, membedakan pelanggaran administratif dengan sengketa/pidana, dan menyusun laporan berbasis fakta.",
+    bloomTaxonomy: "Evaluate",
+    levelKemahiran: "L5 - Mengevaluasi",
+    indikatorPerilaku:
+      "Konsumen mampu menilai apakah dugaan pelanggaran juga mengandung unsur pidana.",
+    pertanyaan: "Kapan dugaan pelanggaran ketentuan perlu dilaporkan ke kepolisian?",
+    jawaban:
+      "Jika faktanya menunjukkan dugaan penipuan, penggelapan, pemalsuan, peretasan, pencurian identitas, atau kejahatan lain, laporan pidana perlu disampaikan kepada kepolisian. Pengaduan kepada BI atau OJK tetap dapat dilakukan untuk aspek kepatuhan dan perlindungan konsumen sesuai kewenangan, tetapi proses regulator tidak menggantikan kewenangan aparat penegak hukum.",
+    basisHukumUtama:
+      "UU No. 1 Tahun 2023 KUHP; PBI No. 3 Tahun 2023; POJK No. 22 Tahun 2023",
+    check: "V",
+  },
+  {
+    id: 52,
+    kategori: "Pelanggaran Ketentuan",
+    kompetensiInti:
+      "Mengidentifikasi indikasi pelanggaran ketentuan, membedakan pelanggaran administratif dengan sengketa/pidana, dan menyusun laporan berbasis fakta.",
+    bloomTaxonomy: "Create",
+    levelKemahiran: "L6 - Menyusun",
+    indikatorPerilaku:
+      "Konsumen mampu menyusun uraian dugaan pelanggaran berbasis fakta, bukti, pihak, tanggal, dan ketentuan yang relevan.",
+    pertanyaan:
+      "Bagaimana cara menyusun laporan dugaan pelanggaran agar jelas dan berbasis fakta?",
+    jawaban:
+      "Tuliskan siapa penyelenggara yang diadukan, produk atau layanan, tanggal kejadian, tindakan yang dianggap melanggar, informasi atau janji yang diberikan, dampak bagi konsumen, bukti pendukung, dan langkah pengaduan yang sudah dilakukan. Jangan hanya menulis kesimpulan; sertakan fakta dan dokumen agar regulator dapat menilai kewenangan dan tindak lanjut yang tepat.",
+    basisHukumUtama:
+      "PBI No. 3 Tahun 2023; PADG BI No. 20 Tahun 2023; POJK No. 22 Tahun 2023",
+    check: "V",
+  },
+];

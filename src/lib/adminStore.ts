@@ -9,7 +9,7 @@ import type {
   AuditEntry,
   InteractionRecord,
 } from "@/types/admin";
-import { FAQ_ITEMS, focusLabel } from "@/data/faq";
+import { FAQ_ITEMS, kategoriLabel } from "@/data/faq";
 import { GUIDED_QUESTIONS } from "@/data/guidedForm";
 import { DEFAULT_ADMIN_SETTINGS } from "@/data/adminConfig";
 import { generateMockInteractions } from "@/data/mockInteractions";
@@ -52,7 +52,7 @@ function seedFaq(): AdminFAQItem[] {
   return FAQ_ITEMS.map((item) => ({
     id: item.id,
     focus: item.focus,
-    category: focusLabel(item.focus),
+    category: kategoriLabel(item.focus),
     question: item.question,
     answer: item.answer,
     keywords: item.keywords ?? [],

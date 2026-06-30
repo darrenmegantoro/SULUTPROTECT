@@ -46,8 +46,13 @@ function getTransition(
 ): Transition {
   switch (id) {
     case "q1":
-      return value === "ketidakpahaman" ? { result: "A" } : { question: "q2" };
+      return { question: "q2" };
     case "q2":
+      if (answers.q1 === "ketidakpahaman") {
+        if (value === "ya") return { result: "A" };
+        if (value === "tidak") return { result: "B" };
+        return { result: "C" };
+      }
       if (value === "ya") return { question: "q3" };
       if (value === "tidak") return { result: "B" };
       return { result: "C" };

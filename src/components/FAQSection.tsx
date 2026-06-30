@@ -2,55 +2,67 @@
 
 import { useMemo, useState } from "react";
 import { ChevronDown, MessageCircle, Search, ExternalLink } from "lucide-react";
-import { FAQ_FOCUS_FILTERS, FAQ_ITEMS, focusLabel } from "@/data/faq";
+import {
+  FAQ_BLOOM_FILTERS,
+  FAQ_KATEGORI_FILTERS,
+  faqBloomItems,
+} from "@/data/faq";
 import { FRAUD_DEFINITION, mentionsFraud } from "@/data/glossary";
 import { APIS_ASK_LABEL, APIS_NAME } from "@/data/apis";
-import { searchFaq, getRelatedCTA } from "@/lib/faqSearch";
+import { getRelatedCTA, searchFaqBloom } from "@/lib/faqSearch";
 import { captureInteraction } from "@/lib/interactionCapture";
 import { cn } from "@/lib/utils";
 import { useChatbot } from "@/components/chatbot/ChatbotProvider";
-import type { FAQItem } from "@/types/faq";
+import type { FaqBloomItem } from "@/types/faqBloom";
 
 type FAQSectionProps = {
-  // Initial query, typically forwarded from the homepage search bar.
   initialQuery?: string;
 };
 
-function FocusBadge({ focus }: { focus: string }) {
+function CategoryBadge({ kategori }: { kategori: string }) {
   return (
     <span className="inline-flex items-center rounded-full bg-navyCore/10 px-2.5 py-0.5 text-[11px] font-semibold text-navyCore">
-      {focusLabel(focus)}
+      {kategori}
+    </span>
+  );
+}
+
+function BloomBadge({ level }: { level: string }) {
+  return (
+    <span className="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-semibold text-amber-800">
+      {level}
     </span>
   );
 }
 
 export default function FAQSection({ initialQuery = "" }: FAQSectionProps) {
   const [query, setQuery] = useState(initialQuery);
-  const [focus, setFocus] = useState<string>("Semua");
-  const [openId, setOpenId] = useState<string | null>(null);
+  const [kategori, setKategori] = useState("Semua");
+  const [bloom, setBloom] = useState("Semua");
+  const [openId, setOpenId] = useState<number | null>(null);
   const { openWithQuestion } = useChatbot();
 
-  const handleToggle = (item: FAQItem) => {
+  const handleToggle = (item: FaqBloomItem) => {
     const willOpen = openId !== item.id;
     setOpenId(willOpen ? item.id : null);
     if (willOpen) {
-      // Capture a privacy-safe interaction record for admin monitoring.
       captureInteraction({
         channel: "FAQ",
-        category: focusLabel(item.focus),
-        query: item.question,
+        category: item.kategori,
+        query: item.pertanyaan,
         resultRecommendation: "Membaca FAQ",
       });
     }
   };
 
-  const filteredItems = useMemo<FAQItem[]>(() => {
-    // Use fuzzy search when there is a query, otherwise the full ordered list.
-    const base = query.trim() ? searchFaq(query) : FAQ_ITEMS;
-    return base.filter(
-      (item) => focus === "Semua" || item.focus === focus
-    );
-  }, [query, focus]);
+  const filteredItems = useMemo<FaqBloomItem[]>(() => {
+    const base = query.trim() ? searchFaqBloom(query) : faqBloomItems;
+    return base.filter((item) => {
+      const kategoriOk = kategori === "Semua" || item.kategori === kategori;
+      const bloomOk = bloom === "Semua" || item.bloomTaxonomy === bloom;
+      return kategoriOk && bloomOk;
+    });
+  }, [query, kategori, bloom]);
 
   return (
     <section id="faq" className="bg-white py-14 sm:py-16">
@@ -61,12 +73,11 @@ export default function FAQSection({ initialQuery = "" }: FAQSectionProps) {
           </h1>
           <p className="mt-3 text-sm leading-relaxed text-bodyTextGray">
             Temukan jawaban atas pertanyaan umum terkait pengaduan Konsumen,
-            batas waktu, dokumen, proses penanganan, dan kanal tindak lanjut yang
-            sesuai.
+            batas waktu, dokumen, proses penanganan, dan kanal tindak lanjut
+            yang sesuai.
           </p>
         </div>
 
-        {/* Search */}
         <div className="mt-6 flex items-center gap-2 rounded-subtle border border-hairlineDivider bg-white px-3 py-2 shadow-sm">
           <Search
             className="h-5 w-5 shrink-0 text-captionGray"
@@ -80,42 +91,66 @@ export default function FAQSection({ initialQuery = "" }: FAQSectionProps) {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Cari FAQ... contoh: batas waktu, dokumen, fasilitasi, kerugian"
+            placeholder="Cari FAQ... pertanyaan, jawaban, kategori, Bloom, basis hukum"
             className="w-full bg-transparent py-1.5 text-sm text-headlineBlack placeholder:text-captionGray focus:outline-none"
           />
         </div>
 
-        {/* Category (focus) filter only — no source filter */}
-        <div className="mt-4">
-          <span className="mb-2 block text-xs font-semibold uppercase tracking-wide text-captionGray">
-            Kategori
-          </span>
-          <div className="flex flex-wrap gap-2">
-            {FAQ_FOCUS_FILTERS.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => setFocus(option.value)}
-                aria-pressed={focus === option.value}
-                className={cn(
-                  "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
-                  focus === option.value
-                    ? "border-navyCore bg-navyCore text-white"
-                    : "border-hairlineDivider bg-white text-bodyTextGray hover:border-navyCore"
-                )}
-              >
-                {option.label}
-              </button>
-            ))}
+        <div className="mt-4 space-y-3">
+          <div>
+            <span className="mb-2 block text-xs font-semibold uppercase tracking-wide text-captionGray">
+              Kategori
+            </span>
+            <div className="flex flex-wrap gap-2">
+              {FAQ_KATEGORI_FILTERS.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setKategori(option.value)}
+                  aria-pressed={kategori === option.value}
+                  className={cn(
+                    "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+                    kategori === option.value
+                      ? "border-navyCore bg-navyCore text-white"
+                      : "border-hairlineDivider bg-white text-bodyTextGray hover:border-navyCore"
+                  )}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <span className="mb-2 block text-xs font-semibold uppercase tracking-wide text-captionGray">
+              Bloom Taxonomy
+            </span>
+            <div className="flex flex-wrap gap-2">
+              {FAQ_BLOOM_FILTERS.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setBloom(option.value)}
+                  aria-pressed={bloom === option.value}
+                  className={cn(
+                    "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+                    bloom === option.value
+                      ? "border-navyCore bg-navyCore text-white"
+                      : "border-hairlineDivider bg-white text-bodyTextGray hover:border-navyCore"
+                  )}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Result count */}
         <p className="mt-5 text-xs text-captionGray">
-          Menampilkan {filteredItems.length} dari {FAQ_ITEMS.length} pertanyaan.
+          Menampilkan {filteredItems.length} dari {faqBloomItems.length}{" "}
+          pertanyaan.
         </p>
 
-        {/* Accordion */}
         <div className="mt-3 divide-y divide-hairlineDivider border-y border-hairlineDivider">
           {filteredItems.length === 0 ? (
             <div className="py-10 text-center">
@@ -150,7 +185,7 @@ export default function FAQSection({ initialQuery = "" }: FAQSectionProps) {
                       className="flex w-full items-center justify-between gap-4 py-4 text-left"
                     >
                       <span className="text-sm font-semibold text-headlineBlack sm:text-base">
-                        {item.question}
+                        {item.pertanyaan}
                       </span>
                       <ChevronDown
                         className={cn(
@@ -170,19 +205,46 @@ export default function FAQSection({ initialQuery = "" }: FAQSectionProps) {
                     className="pb-5"
                   >
                     <div className="mb-3 flex flex-wrap items-center gap-2">
-                      <FocusBadge focus={item.focus} />
-                      {item.reference ? (
-                        <span className="text-[11px] text-captionGray">
-                          {item.reference}
-                        </span>
-                      ) : null}
+                      <CategoryBadge kategori={item.kategori} />
+                      <BloomBadge level={item.bloomTaxonomy} />
+                      <span className="text-[11px] text-captionGray">
+                        {item.levelKemahiran}
+                      </span>
                     </div>
 
-                    <p className="text-sm leading-relaxed text-bodyTextGray">
-                      {item.answer}
+                    <p className="whitespace-pre-line text-sm leading-relaxed text-bodyTextGray">
+                      {item.jawaban}
                     </p>
 
-                    {mentionsFraud(item.question, item.answer) ? (
+                    <details className="mt-3 rounded-lg border border-hairlineDivider bg-offWhiteSection p-3">
+                      <summary className="cursor-pointer text-xs font-semibold text-navyCore">
+                        Metadata Bloom
+                      </summary>
+                      <dl className="mt-2 space-y-1.5 text-xs text-bodyTextGray">
+                        <div>
+                          <dt className="font-semibold text-headlineBlack">
+                            Kompetensi inti
+                          </dt>
+                          <dd>{item.kompetensiInti}</dd>
+                        </div>
+                        <div>
+                          <dt className="font-semibold text-headlineBlack">
+                            Indikator perilaku
+                          </dt>
+                          <dd>{item.indikatorPerilaku}</dd>
+                        </div>
+                        <div>
+                          <dt className="font-semibold text-headlineBlack">
+                            Basis hukum utama
+                          </dt>
+                          <dd className="text-captionGray">
+                            {item.basisHukumUtama}
+                          </dd>
+                        </div>
+                      </dl>
+                    </details>
+
+                    {mentionsFraud(item.pertanyaan, item.jawaban) ? (
                       <p className="mt-3 rounded-lg border border-hairlineDivider bg-offWhiteSection p-3 text-xs leading-relaxed text-bodyTextGray">
                         <span className="font-semibold text-headlineBlack">
                           Definisi:
@@ -194,7 +256,7 @@ export default function FAQSection({ initialQuery = "" }: FAQSectionProps) {
                     <div className="mt-4 flex flex-wrap gap-2">
                       <button
                         type="button"
-                        onClick={() => openWithQuestion(item.question)}
+                        onClick={() => openWithQuestion(item.pertanyaan)}
                         className="inline-flex items-center gap-1.5 rounded-subtle border border-navyCore px-3 py-1.5 text-xs font-semibold text-navyCore transition-colors hover:bg-offWhiteSection"
                       >
                         <MessageCircle

@@ -2,28 +2,30 @@
 
 import { useCallback, useState } from "react";
 import type { ChatMessage as ChatMessageType } from "@/types/faq";
-import { getChatbotResponse } from "@/lib/faqSearch";
-import { summarizeAnswer, uid } from "@/lib/utils";
+import {
+  formatStructuredApisAnswer,
+  getChatbotResponse,
+} from "@/lib/faqSearch";
+import { uid } from "@/lib/utils";
 import { FRAUD_DEFINITION, mentionsFraud } from "@/data/glossary";
-import { focusLabel } from "@/data/faq";
 import { captureInteraction } from "@/lib/interactionCapture";
 import { APIS_NAME } from "@/data/apis";
 
 export const WELCOME_TEXT = `Halo, saya ${APIS_NAME}. Saya dapat membantu Anda mencari informasi dari FAQ terkait pengaduan Konsumen, dokumen, batas waktu, kanal BI Bicara, LAPS SJK, dan proses penanganan pengaduan oleh Bank Indonesia.`;
 
 export const FALLBACK_TEXT =
-  "Maaf, saya belum menemukan jawaban yang sesuai di FAQ. Silakan coba gunakan kata kunci lain, buka halaman FAQ, atau hubungi BI Bicara untuk memperoleh edukasi lebih lanjut.";
+  "Maaf, APIS belum menemukan jawaban yang cukup sesuai di basis FAQ. Anda dapat mencoba menggunakan kata kunci lain, membuka FAQ, atau mengisi Formulir Panduan Pengaduan agar sistem membantu mengarahkan kanal yang tepat.";
 
 export const CLARIFICATION_TEXT =
   "Saya menemukan beberapa topik yang mungkin terkait. Silakan pilih salah satu pertanyaan berikut:";
 
 export const SUGGESTED_QUESTIONS = [
-  "Apa saja jenis pengaduan Konsumen?",
-  "Apakah harus mengadu ke Penyelenggara dulu?",
-  "Berapa batas waktu pengaduan ke BI?",
-  "Dokumen apa yang perlu disiapkan?",
-  "Kapan diarahkan ke LAPS SJK?",
-  "Apa yang harus dilakukan jika menjadi korban fraud?",
+  "Apakah ada batas waktu untuk menyampaikan pengaduan kepada Bank Indonesia?",
+  "Apakah saya harus mengadu ke Penyelenggara terlebih dahulu sebelum ke Bank Indonesia?",
+  "Dokumen apa yang perlu disiapkan untuk pengaduan kerugian kepada Bank Indonesia?",
+  "Kapan Konsumen dapat meminta fasilitasi kepada Bank Indonesia?",
+  "Jika sengketa saya terjadi dengan bank yang diawasi OJK, ke mana saya harus mengadu lebih dahulu?",
+  "Apa yang harus saya lakukan jika merasa menjadi korban transfer dana terindikasi fraud?",
 ];
 
 function createWelcomeMessage(): ChatMessageType {
@@ -35,8 +37,6 @@ function createWelcomeMessage(): ChatMessageType {
   };
 }
 
-// Shared retrieval-based chat state used by the floating panel and the
-// dedicated /asisten page. Each consumer gets its own independent instance.
 export function useChatMessages() {
   const [messages, setMessages] = useState<ChatMessageType[]>([
     createWelcomeMessage(),
@@ -56,17 +56,20 @@ export function useChatMessages() {
     let assistantMessage: ChatMessageType;
 
     if (result.type === "answer") {
-      const summary = summarizeAnswer(result.item.answer);
-      // Surface the fraud definition when the matched FAQ is fraud-related.
-      const content = mentionsFraud(result.item.question, result.item.answer)
-        ? `${summary}\n\n${FRAUD_DEFINITION}`
-        : summary;
+      let structured = result.structured;
+      if (mentionsFraud(result.item.pertanyaan, result.item.jawaban)) {
+        structured = {
+          ...structured,
+          penjelasan: `${structured.penjelasan}\n\n${FRAUD_DEFINITION}`,
+        };
+      }
       assistantMessage = {
         id: uid("msg"),
         role: "assistant",
-        content,
-        source: result.item.source,
-        reference: result.item.reference || undefined,
+        content: formatStructuredApisAnswer(structured),
+        source: result.item.basisHukumUtama,
+        reference: result.item.basisHukumUtama,
+        structuredAnswer: structured,
         relatedCTA: result.cta,
         variant: "answer",
       };
@@ -89,10 +92,10 @@ export function useChatMessages() {
 
     setMessages((prev) => [...prev, userMessage, assistantMessage]);
 
-    // Capture a privacy-safe interaction record for admin monitoring.
     captureInteraction({
       channel: "Asisten",
-      category: result.type === "answer" ? focusLabel(result.item.focus) : undefined,
+      category:
+        result.type === "answer" ? result.item.kategori : undefined,
       query: question,
       resultRecommendation:
         result.type === "answer"
