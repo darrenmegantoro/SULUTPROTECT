@@ -1,11 +1,52 @@
 import type {
+  ChecklistItem,
   GuidedQuestion,
   GuidedResult,
   ResultKey,
 } from "@/types/guidedForm";
 import { EXTERNAL_LINKS } from "@/data/links";
 
-// The eight Guided Form questions (one shown at a time).
+export const BI_DOCUMENT_CHECKLIST: ChecklistItem[] = [
+  { label: "Fotokopi bukti identitas diri" },
+  {
+    label:
+      "Fotokopi surat hasil penyelesaian pengaduan yang diberikan Penyelenggara kepada Konsumen",
+  },
+  { label: "Fotokopi bukti transaksi" },
+  { label: "Fotokopi surat kuasa, dalam hal dikuasakan" },
+  {
+    label:
+      "Surat pernyataan bermeterai cukup bahwa permasalahan yang diajukan merupakan masalah perdata yang tidak pernah diproses oleh pengadilan, lembaga atau badan penyelesaian sengketa, atau otoritas yang berwenang lainnya",
+    cta: {
+      label: "Surat Pernyataan",
+      href: EXTERNAL_LINKS.suratPernyataan,
+    },
+  },
+];
+
+export const BIDANG_LABELS: Record<string, string> = {
+  pjp: "Penyedia Jasa Pembayaran (PJP)",
+  pjp_nonbank: "Penyedia Jasa Pembayaran (PJP) Non-Bank",
+  layanan_uang: "Kegiatan Layanan Uang",
+  kupva_bb:
+    "Kegiatan Usaha Penukaran Valuta Asing Bukan Bank (KUPVA BB)",
+};
+
+export const LOSS_THRESHOLD_500M = 500_000_000;
+export const LOSS_THRESHOLD_2_5B = 2_500_000_000;
+
+export function getLossThresholdForBidang(bidang: string): number {
+  if (bidang === "kupva_bb") return LOSS_THRESHOLD_2_5B;
+  return LOSS_THRESHOLD_500M;
+}
+
+export function getLossThresholdHelper(bidang: string): string {
+  if (bidang === "kupva_bb") {
+    return "Untuk bidang yang Anda pilih, batas nilai kerugian finansial atau potensi kerugian finansial yang dapat diarahkan melalui mekanisme Bank Indonesia adalah paling banyak Rp2.500.000.000.";
+  }
+  return "Untuk bidang yang Anda pilih, batas nilai kerugian finansial atau potensi kerugian finansial yang dapat diarahkan melalui mekanisme Bank Indonesia adalah paling banyak Rp500.000.000.";
+}
+
 export const GUIDED_QUESTIONS: GuidedQuestion[] = [
   {
     id: "q1",
@@ -55,6 +96,20 @@ export const GUIDED_QUESTIONS: GuidedQuestion[] = [
     id: "q3",
     step: 3,
     kind: "choice",
+    question: "Bidang Penyelenggara / Pelaku terkait",
+    helper:
+      "Pilih bidang Penyelenggara atau pelaku yang paling sesuai dengan pengaduan Anda. Pilihan ini digunakan untuk menentukan batas nilai kerugian finansial atau potensi kerugian finansial yang berlaku.",
+    options: [
+      { value: "pjp", label: BIDANG_LABELS.pjp },
+      { value: "pjp_nonbank", label: BIDANG_LABELS.pjp_nonbank },
+      { value: "layanan_uang", label: BIDANG_LABELS.layanan_uang },
+      { value: "kupva_bb", label: BIDANG_LABELS.kupva_bb },
+    ],
+  },
+  {
+    id: "q4",
+    step: 4,
+    kind: "choice",
     question:
       "Apakah pengaduan sudah disampaikan terlebih dahulu kepada Penyelenggara?",
     options: [
@@ -63,8 +118,8 @@ export const GUIDED_QUESTIONS: GuidedQuestion[] = [
     ],
   },
   {
-    id: "q4",
-    step: 4,
+    id: "q5",
+    step: 5,
     kind: "date",
     question:
       "Kapan Anda menerima hasil penyelesaian tertulis dari Penyelenggara?",
@@ -72,8 +127,8 @@ export const GUIDED_QUESTIONS: GuidedQuestion[] = [
       "Batas pengajuan adalah 60 hari kerja sejak tanggal penyampaian hasil penyelesaian pengaduan secara tertulis dari Penyelenggara kepada Konsumen.",
   },
   {
-    id: "q5",
-    step: 5,
+    id: "q6",
+    step: 6,
     kind: "choice",
     question: "Apakah pengaduan Anda merupakan masalah perdata?",
     options: [
@@ -83,8 +138,8 @@ export const GUIDED_QUESTIONS: GuidedQuestion[] = [
     ],
   },
   {
-    id: "q6",
-    step: 6,
+    id: "q7",
+    step: 7,
     kind: "choice",
     question:
       "Apakah permasalahan ini pernah diproses oleh pengadilan, lembaga penyelesaian sengketa, atau otoritas lain?",
@@ -94,8 +149,8 @@ export const GUIDED_QUESTIONS: GuidedQuestion[] = [
     ],
   },
   {
-    id: "q7",
-    step: 7,
+    id: "q8",
+    step: 8,
     kind: "choice",
     question: "Apakah pengaduan sudah pernah difasilitasi oleh Bank Indonesia?",
     options: [
@@ -104,23 +159,21 @@ export const GUIDED_QUESTIONS: GuidedQuestion[] = [
     ],
   },
   {
-    id: "q8",
-    step: 8,
+    id: "q9",
+    step: 9,
     kind: "number",
     question:
       "Berapa nilai kerugian finansial atau potensi kerugian finansial yang Anda alami?",
     placeholder: "Contoh: 1500000",
-    note: "Catatan: Untuk pengaduan yang berkaitan dengan Pasar Uang dan Pasar Valuta Asing, batas nilai potensi kerugian finansial mengikuti ketentuan tersendiri, yaitu paling banyak Rp2.500.000.000.",
   },
 ];
 
 export const TOTAL_STEPS = GUIDED_QUESTIONS.length;
 
-// Approximate 60 working days as 84 calendar days for the prototype.
 export const TIME_LIMIT_CALENDAR_DAYS = 84;
 
-// Threshold (in Rupiah) for the BI handling cap in this category.
-export const LOSS_THRESHOLD = 500000000;
+/** @deprecated Use getLossThresholdForBidang instead. */
+export const LOSS_THRESHOLD = LOSS_THRESHOLD_500M;
 
 export const GUIDED_RESULTS: Record<ResultKey, GuidedResult> = {
   A: {
@@ -179,11 +232,11 @@ export const GUIDED_RESULTS: Record<ResultKey, GuidedResult> = {
     description:
       "Untuk pengaduan terkait sengketa atau kerugian finansial, Konsumen perlu menyampaikan pengaduan terlebih dahulu kepada Penyelenggara. Langkah ini memberi kesempatan kepada Penyelenggara untuk memeriksa permasalahan, memberikan penjelasan, dan menyampaikan hasil penyelesaian secara tertulis.",
     checklist: [
-      "Identitas diri",
-      "Kronologis kejadian",
-      "Bukti transaksi",
-      "Bukti komunikasi dengan Penyelenggara",
-      "Dokumen pendukung lainnya",
+      { label: "Identitas diri" },
+      { label: "Kronologis kejadian" },
+      { label: "Bukti transaksi" },
+      { label: "Bukti komunikasi dengan Penyelenggara" },
+      { label: "Dokumen pendukung lainnya" },
     ],
     ctas: [{ label: "Baca FAQ Pengaduan ke Penyelenggara", to: "/faq" }],
     askQuestion: "Apakah harus mengadu ke Penyelenggara dulu sebelum ke Bank Indonesia?",
@@ -195,7 +248,7 @@ export const GUIDED_RESULTS: Record<ResultKey, GuidedResult> = {
     badgeTone: "warning",
     title: "Pengaduan melewati batas waktu pengajuan.",
     description:
-      "Pengaduan terkait kerugian finansial atau potensi kerugian finansial diajukan kepada Bank Indonesia paling lama 60 hari kerja sejak tanggal penyampaian hasil penyelesaian pengaduan secara tertulis dari Penyelenggara kepada Konsumen. Jika sudah melewati batas waktu tersebut, pengaduan tidak memenuhi ketentuan batas waktu untuk diproses melalui mekanisme ini.",
+      "Pengaduan terkait kerugian finansial atau potensi kerugian finansial diajukan kepada Bank Indonesia paling lama 60 hari kerja sejak tanggal penyampaian hasil penyelesaian pengaduan secara tertulis dari Penyelenggara kepada Konsumen. Jika sudah melewati batas waktu tersebut, pengaduan tidak memenuhi ketentuan batas waktu untuk diproses melalui mekanisme ini. Konsumen dapat membaca FAQ terkait batas waktu dan, apabila permasalahan merupakan sengketa sektor jasa keuangan yang memenuhi persyaratan, dapat mempertimbangkan penyelesaian melalui LAPS SJK sesuai ketentuan yang berlaku.",
     ctas: [
       { label: "Baca FAQ Batas Waktu", to: "/faq" },
       { label: "Lihat LAPS SJK", href: EXTERNAL_LINKS.lapsSjk },
@@ -259,17 +312,16 @@ export const GUIDED_RESULTS: Record<ResultKey, GuidedResult> = {
     badgeTone: "positive",
     title: "Pengaduan dapat diarahkan ke BI Bicara.",
     description:
-      "Berdasarkan nilai kerugian yang Anda masukkan, pengaduan dapat diarahkan ke kanal Bank Indonesia sepanjang seluruh persyaratan lain terpenuhi. Pastikan Anda telah menyampaikan pengaduan kepada Penyelenggara, menerima hasil penyelesaian tertulis, dan masih berada dalam batas waktu pengajuan.",
-    checklist: [
-      "Identitas diri",
-      "Bukti pengaduan kepada Penyelenggara",
-      "Hasil penyelesaian tertulis dari Penyelenggara",
-      "Bukti transaksi",
-      "Kronologis kejadian",
-      "Surat kuasa, jika dikuasakan",
-      "Surat pernyataan bermeterai cukup",
+      "Berdasarkan nilai kerugian yang Anda masukkan, pengaduan dapat diarahkan ke kanal Bank Indonesia sepanjang seluruh persyaratan lain terpenuhi. Pastikan Anda telah menyampaikan pengaduan kepada Penyelenggara, menerima hasil penyelesaian tertulis, dan masih berada dalam batas waktu pengajuan. Konsumen dapat mengajukan permintaan fasilitasi secara tertulis dengan mengisi Formulir Pengajuan Fasilitasi. Dalam proses fasilitasi, Konsumen juga perlu menaati dan menandatangani Tata Tertib Pelaksanaan Fasilitasi.",
+    checklist: BI_DOCUMENT_CHECKLIST,
+    ctas: [
+      { label: "Lanjut ke BI Bicara", href: EXTERNAL_LINKS.biBicara },
+      {
+        label: "Formulir Pengajuan Fasilitasi",
+        href: EXTERNAL_LINKS.formulirFasilitasi,
+      },
+      { label: "Tata Tertib", href: EXTERNAL_LINKS.tataTertib },
     ],
-    ctas: [{ label: "Lanjut ke BI Bicara", href: EXTERNAL_LINKS.biBicara }],
     askQuestion: "Dokumen apa yang perlu disiapkan sebelum ke BI Bicara?",
     relatedFocus: "Kerugian Konsumen",
   },
@@ -277,10 +329,9 @@ export const GUIDED_RESULTS: Record<ResultKey, GuidedResult> = {
     key: "K",
     statusBadge: "Diarahkan ke LAPS SJK",
     badgeTone: "redirect",
-    title: "Nilai kerugian melebihi batas penanganan BI untuk kategori ini.",
+    title: "Nilai kerugian melebihi batas penanganan BI untuk bidang ini.",
     description:
-      "Untuk Penyelenggara di bidang Sistem Pembayaran, Penyelenggara Kegiatan Layanan Uang, dan pihak lain yang diatur dan diawasi Bank Indonesia, nilai potensi kerugian finansial yang dapat diajukan kepada Bank Indonesia paling banyak sebesar Rp500.000.000. Jika nilai kerugian melebihi batas tersebut, Anda dapat memperoleh informasi penyelesaian sengketa melalui LAPS SJK atau jalur penyelesaian lain sesuai ketentuan.",
-    note: "Catatan: Untuk pengaduan yang berkaitan dengan Pasar Uang dan Pasar Valuta Asing, batas nilai potensi kerugian finansial mengikuti ketentuan tersendiri, yaitu paling banyak Rp2.500.000.000.",
+      "Nilai kerugian finansial atau potensi kerugian finansial yang Anda masukkan melebihi batas yang berlaku untuk bidang Penyelenggara atau pelaku terkait yang Anda pilih. Pengaduan dapat dipertimbangkan untuk penyelesaian melalui LAPS SJK atau jalur penyelesaian lain sesuai ketentuan yang berlaku, apabila seluruh persyaratan terpenuhi.",
     ctas: [
       { label: "Lihat LAPS SJK", href: EXTERNAL_LINKS.lapsSjk },
       { label: "Baca FAQ Batas Nilai Kerugian", to: "/faq" },

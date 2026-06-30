@@ -7,12 +7,15 @@ import { Menu, X, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { APIS_NAME } from "@/data/apis";
 
-// Primary navigation. Routes are real pages (App Router).
 const NAV_ITEMS = [
   { label: "Beranda", href: "/" },
+  {
+    label: "Mulai Formulir Panduan Pengaduan",
+    href: "/formulir-panduan-pengaduan",
+  },
   { label: "FAQ", href: "/faq" },
-  { label: "Mulai Formulir Panduan Pengaduan", href: "/formulir-panduan-pengaduan" },
   { label: APIS_NAME, href: "/asisten" },
+  { label: "Login Admin", href: "/login" },
 ];
 
 const BRAND_SUBTITLE =
@@ -44,15 +47,14 @@ export default function Navbar() {
           </span>
         </Link>
 
-        {/* Desktop nav — pill/box-style buttons */}
-        <div className="hidden items-center gap-2 lg:flex">
+        <div className="hidden items-center gap-2 xl:flex">
           {NAV_ITEMS.map((item) => (
             <Link
               key={item.label}
               href={item.href}
               aria-current={isActive(item.href) ? "page" : undefined}
               className={cn(
-                "rounded-subtle border px-4 py-2 text-sm font-semibold transition-colors",
+                "rounded-subtle border px-3 py-2 text-sm font-semibold transition-colors",
                 isActive(item.href)
                   ? "border-navyCore bg-navyCore text-white"
                   : "border-navyCore/30 bg-white text-navyCore hover:border-navyCore hover:bg-offWhiteSection"
@@ -63,10 +65,9 @@ export default function Navbar() {
           ))}
         </div>
 
-        {/* Mobile toggle */}
         <button
           type="button"
-          className="inline-flex items-center justify-center rounded-md p-2 text-navyCore lg:hidden"
+          className="inline-flex items-center justify-center rounded-md p-2 text-navyCore xl:hidden"
           aria-expanded={mobileOpen}
           aria-label={mobileOpen ? "Tutup menu" : "Buka menu"}
           onClick={() => setMobileOpen((v) => !v)}
@@ -79,8 +80,7 @@ export default function Navbar() {
         </button>
       </nav>
 
-      {/* Mobile menu */}
-      <div className={cn("lg:hidden", mobileOpen ? "block" : "hidden")}>
+      <div className={cn("xl:hidden", mobileOpen ? "block" : "hidden")}>
         <div className="container-bi flex flex-col gap-2 border-t border-hairlineDivider py-3">
           {NAV_ITEMS.map((item) => (
             <Link

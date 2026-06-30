@@ -1,4 +1,4 @@
-// Guided Form domain types. The flow is a linear wizard (Q1-Q8) that can branch
+// Guided Form domain types. The flow is a linear wizard (Q1-Q9) that can branch
 // to one of eleven educational result cards (A-K).
 
 export type ResultKey =
@@ -22,7 +22,16 @@ export type QuestionId =
   | "q5"
   | "q6"
   | "q7"
-  | "q8";
+  | "q8"
+  | "q9";
+
+export type ConsumerData = {
+  nama: string;
+  telepon: string;
+  provinsi: string;
+  kotaKabupaten: string;
+  email: string;
+};
 
 export type QuestionKind = "choice" | "date" | "number";
 
@@ -60,13 +69,18 @@ export type ResultCTA = {
   askAsisten?: boolean;
 };
 
+export type ChecklistItem = {
+  label: string;
+  cta?: { label: string; href: string };
+};
+
 export type GuidedResult = {
   key: ResultKey;
   statusBadge: string;
   badgeTone: ResultBadgeTone;
   title: string;
   description: string;
-  checklist?: string[];
+  checklist?: ChecklistItem[];
   infoBadge?: string;
   note?: string;
   referralList?: { label: string; description: string }[];

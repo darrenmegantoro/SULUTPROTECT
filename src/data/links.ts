@@ -10,6 +10,12 @@ export const EXTERNAL_LINKS = {
   polriSiber: "https://patrolisiber.id/",
   cekPenyelenggara:
     "https://www.bi.go.id/id/layanan/informasi-perizinan/sistem-pembayaran/default.aspx",
+  formulirFasilitasi:
+    "https://drive.google.com/file/d/1Ekxe5j3vHbJhzjHje4X_nteyot_WePj_/view?usp=sharing",
+  tataTertib:
+    "https://drive.google.com/file/d/11rg-sdGg_Se8MBaarp9-kindgthY0646/view?usp=sharing",
+  suratPernyataan:
+    "https://drive.google.com/file/d/1YPQpmDrL6z0Oj6Q6KYag8M1VDWgx6ern/view?usp=sharing",
 } as const;
 
 export const RELATED_CHANNELS = [

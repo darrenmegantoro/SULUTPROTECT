@@ -75,17 +75,28 @@ export default function ResultCard({ result }: ResultCardProps) {
             <p className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-semibold text-amber-700">
               Perlu dokumen
             </p>
-            <ul className="space-y-1.5">
+            <ul className="space-y-2">
               {result.checklist.map((doc) => (
                 <li
-                  key={doc}
-                  className="flex items-start gap-2 text-sm text-bodyTextGray"
+                  key={doc.label}
+                  className="flex flex-wrap items-start gap-2 text-sm text-bodyTextGray"
                 >
                   <CheckCircle2
                     className="mt-0.5 h-4 w-4 shrink-0 text-navyCore"
                     aria-hidden="true"
                   />
-                  <span>{doc}</span>
+                  <span className="min-w-0 flex-1">{doc.label}</span>
+                  {doc.cta ? (
+                    <a
+                      href={doc.cta.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-linkBlue hover:underline"
+                    >
+                      {doc.cta.label}
+                      <ExternalLink className="h-3 w-3" aria-hidden="true" />
+                    </a>
+                  ) : null}
                 </li>
               ))}
             </ul>

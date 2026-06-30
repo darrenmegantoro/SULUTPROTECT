@@ -22,6 +22,7 @@ type CapturePayload = {
   query?: string;
   answerSummary?: string[];
   resultRecommendation?: string;
+  location?: string;
 };
 
 function randomOf<T>(arr: T[]): T {
@@ -44,8 +45,8 @@ export function captureInteraction(payload: CapturePayload): void {
     query: payload.query,
     answerSummary: payload.answerSummary,
     resultRecommendation: payload.resultRecommendation,
-    // Mock, non-identifying values for demo distributions.
-    location: randomOf(SULUT_LOCATIONS),
+    // Use coarse location from the form when provided; otherwise mock for demo.
+    location: payload.location ?? randomOf(SULUT_LOCATIONS),
     demographic: {
       ageRange: randomOf(AGE_RANGES),
       gender: randomOf(GENDERS),
