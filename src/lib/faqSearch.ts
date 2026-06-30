@@ -1,6 +1,20 @@
 import Fuse from "fuse.js";
 import { faqBloomItems } from "@/data/faqBloom";
 import { EXTERNAL_LINKS } from "@/data/links";
+import type { AuthorityAction } from "@/data/authorityRouting";
+import {
+  analyzeQuery,
+  buildAuthorityStructuredAnswer,
+  findRelatedAuthorityFaqs,
+  formatAuthorityAnswer,
+  GENERIC_FRAUD_CHIP_QUESTIONS,
+  GENERIC_FRAUD_CLARIFICATION,
+  getAuthoritySuggestedQuestions,
+  resolveAuthorityRoute,
+  shouldSuppressBiPaymentFaq,
+  type ApisAnswerSource,
+  type AuthorityStructuredAnswer,
+} from "@/lib/apisRouting";
 import type { FaqBloomItem, StructuredApisAnswer } from "@/types/faqBloom";
 import type { RelatedCTA } from "@/types/faq";
 
@@ -16,8 +30,8 @@ const fuse = new Fuse<FaqBloomItem>(faqBloomItems, {
     { name: "kompetensiInti", weight: 0.12 },
     { name: "bloomTaxonomy", weight: 0.08 },
     { name: "levelKemahiran", weight: 0.06 },
-    { name: "indikatorPerilaku", weight: 0.06 },
-    { name: "basisHukumUtama", weight: 0.06 },
+    { name: "indikatorPerilaku", weight: 0.07 },
+    { name: "basisHukumUtama", weight: 0.05 },
   ],
 });
 
@@ -50,7 +64,11 @@ function suggestNextStep(item: FaqBloomItem): string {
   if (haystack.includes("penyelenggara") && haystack.includes("terlebih")) {
     return "Sampaikan pengaduan kepada Penyelenggara terlebih dahulu, simpan bukti dan hasil penyelesaian tertulis, lalu gunakan Formulir Panduan Pengaduan jika perlu diarahkan ke Bank Indonesia.";
   }
-  if (haystack.includes("ojk") || haystack.includes("bank") || haystack.includes("asuransi")) {
+  if (
+    haystack.includes("ojk") ||
+    haystack.includes("asuransi") ||
+    haystack.includes("salah alamat")
+  ) {
     return "Pastikan lembaga yang diadukan berada dalam kewenangan yang tepat (BI atau OJK). Gunakan Formulir Panduan Pengaduan atau buka FAQ untuk memeriksa arahan kanal.";
   }
   return "Gunakan Formulir Panduan Pengaduan untuk memeriksa jalur pengaduan yang sesuai, buka FAQ terkait, atau hubungi BI Bicara bila memerlukan panduan lebih lanjut.";
@@ -80,24 +98,31 @@ export function formatStructuredApisAnswer(answer: StructuredApisAnswer): string
   ].join("\n\n");
 }
 
-export function searchFaqBloom(query: string): FaqBloomItem[] {
+type ScoredFaqMatch = { item: FaqBloomItem; score: number };
+
+function searchFaqBloomScored(
+  query: string,
+  signals: ReturnType<typeof analyzeQuery>
+): ScoredFaqMatch[] {
   const q = query.trim();
-  if (!q) return faqBloomItems;
-  return fuse.search(q).map((r) => r.item);
+  if (!q) return faqBloomItems.map((item) => ({ item, score: 0 }));
+
+  return fuse
+    .search(q)
+    .map((match) => {
+      let score = match.score ?? 1;
+      if (shouldSuppressBiPaymentFaq(signals, match.item)) {
+        score *= 0.15;
+      }
+      return { item: match.item, score };
+    })
+    .filter((match) => !shouldSuppressBiPaymentFaq(signals, match.item))
+    .sort((a, b) => a.score - b.score);
 }
 
-/** @deprecated Use searchFaqBloom */
-export function searchFaq(query: string) {
-  return searchFaqBloom(query).map((item) => ({
-    id: `faq-${String(item.id).padStart(3, "0")}`,
-    no: item.id,
-    source: item.basisHukumUtama,
-    focus: item.kategori,
-    question: item.pertanyaan,
-    answer: item.jawaban,
-    reference: item.basisHukumUtama,
-    bloom: item,
-  }));
+export function searchFaqBloom(query: string): FaqBloomItem[] {
+  const signals = analyzeQuery(query);
+  return searchFaqBloomScored(query, signals).map((match) => match.item);
 }
 
 export function getRelatedCTA(item: FaqBloomItem): RelatedCTA | undefined {
@@ -118,33 +143,118 @@ export function getRelatedCTA(item: FaqBloomItem): RelatedCTA | undefined {
 export type ChatbotResult =
   | {
       type: "answer";
+      answerSource: Extract<ApisAnswerSource, "faq">;
       item: FaqBloomItem;
       structured: StructuredApisAnswer;
       cta?: RelatedCTA;
     }
-  | { type: "clarification"; relatedQuestions: string[] }
+  | {
+      type: "authority";
+      answerSource: Extract<ApisAnswerSource, "authority">;
+      authority: AuthorityStructuredAnswer;
+      suggestedActions: AuthorityAction[];
+      relatedQuestions: string[];
+    }
+  | {
+      type: "mixed";
+      answerSource: Extract<ApisAnswerSource, "mixed">;
+      authority: AuthorityStructuredAnswer;
+      item: FaqBloomItem;
+      structured: StructuredApisAnswer;
+      suggestedActions: AuthorityAction[];
+      relatedQuestions: string[];
+    }
+  | {
+      type: "clarification";
+      answerSource: Extract<ApisAnswerSource, "clarification">;
+      content: string;
+      relatedQuestions: string[];
+    }
   | { type: "fallback" };
 
 export function getChatbotResponse(query: string): ChatbotResult {
   const q = query.trim();
   if (!q) return { type: "fallback" };
 
-  const matches = fuse.search(q);
+  const signals = analyzeQuery(q);
+  const authorityRoute = resolveAuthorityRoute(signals);
+
+  if (signals.isGenericFraudOnly) {
+    return {
+      type: "clarification",
+      answerSource: "clarification",
+      content: GENERIC_FRAUD_CLARIFICATION,
+      relatedQuestions: GENERIC_FRAUD_CHIP_QUESTIONS,
+    };
+  }
+
+  if (
+    authorityRoute &&
+    signals.hasOutsideBiDomain &&
+    signals.hasBiDomain
+  ) {
+    const authority = buildAuthorityStructuredAnswer(authorityRoute, signals);
+    const faqMatches = searchFaqBloomScored(q, signals);
+    const relatedFaqs = findRelatedAuthorityFaqs(authorityRoute, signals);
+    const bestItem = relatedFaqs[0] ?? faqMatches[0]?.item;
+
+    if (bestItem) {
+      return {
+        type: "mixed",
+        answerSource: "mixed",
+        authority,
+        item: bestItem,
+        structured: buildStructuredApisAnswer(bestItem),
+        suggestedActions: authorityRoute.suggestedActions,
+        relatedQuestions: getAuthoritySuggestedQuestions(authorityRoute, signals),
+      };
+    }
+  }
+
+  if (
+    authorityRoute &&
+    signals.hasOutsideBiDomain &&
+    !signals.hasBiDomain
+  ) {
+    return {
+      type: "authority",
+      answerSource: "authority",
+      authority: buildAuthorityStructuredAnswer(authorityRoute, signals),
+      suggestedActions: authorityRoute.suggestedActions,
+      relatedQuestions: getAuthoritySuggestedQuestions(authorityRoute, signals),
+    };
+  }
+
+  const matches = searchFaqBloomScored(q, signals);
   const best = matches[0];
 
-  if (best && best.score !== undefined && best.score <= CONFIDENT_SCORE) {
+  if (best && best.score <= CONFIDENT_SCORE) {
     return {
       type: "answer",
+      answerSource: "faq",
       item: best.item,
       structured: buildStructuredApisAnswer(best.item),
       cta: getRelatedCTA(best.item),
     };
   }
 
+  if (authorityRoute && signals.hasOutsideBiDomain) {
+    return {
+      type: "authority",
+      answerSource: "authority",
+      authority: buildAuthorityStructuredAnswer(authorityRoute, signals),
+      suggestedActions: authorityRoute.suggestedActions,
+      relatedQuestions: getAuthoritySuggestedQuestions(authorityRoute, signals),
+    };
+  }
+
   if (matches.length > 0) {
     return {
       type: "clarification",
-      relatedQuestions: matches.slice(0, 3).map((m) => m.item.pertanyaan),
+      answerSource: "clarification",
+      content:
+        "Saya menemukan beberapa topik yang mungkin terkait. Silakan pilih salah satu pertanyaan berikut:",
+      relatedQuestions: matches.slice(0, 3).map((match) => match.item.pertanyaan),
     };
   }
 
@@ -157,7 +267,21 @@ export function findBloomItemByQuestion(
   return faqBloomItems.find((item) => item.pertanyaan === question);
 }
 
-/** @deprecated Use findBloomItemByQuestion */
+export { formatAuthorityAnswer };
+
+export function searchFaq(query: string) {
+  return searchFaqBloom(query).map((item) => ({
+    id: `faq-${String(item.id).padStart(3, "0")}`,
+    no: item.id,
+    source: item.basisHukumUtama,
+    focus: item.kategori,
+    question: item.pertanyaan,
+    answer: item.jawaban,
+    reference: item.basisHukumUtama,
+    bloom: item,
+  }));
+}
+
 export function findItemByQuestion(question: string) {
   const item = findBloomItemByQuestion(question);
   if (!item) return undefined;

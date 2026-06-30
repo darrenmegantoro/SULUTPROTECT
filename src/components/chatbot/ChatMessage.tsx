@@ -40,10 +40,15 @@ export default function ChatMessage({
           "max-w-[85%] rounded-2xl rounded-tl-sm border border-hairlineDivider bg-white px-3.5 py-3 shadow-sm"
         )}
       >
-        {message.variant === "answer" ? (
+        {message.variant === "answer" ||
+        message.variant === "authority" ||
+        message.variant === "mixed" ? (
           <FAQAnswerCard
             content={message.content}
             structuredAnswer={message.structuredAnswer}
+            authorityAnswer={message.authorityAnswer}
+            answerSource={message.answerSource}
+            suggestedActions={message.suggestedActions}
             source={message.source}
             reference={message.reference}
             cta={message.relatedCTA}

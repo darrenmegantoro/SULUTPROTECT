@@ -5,6 +5,9 @@
 
 
 import type { FaqBloomItem, StructuredApisAnswer } from "@/types/faqBloom";
+import type { AuthorityStructuredAnswer } from "@/lib/apisRouting";
+import type { AuthorityAction } from "@/data/authorityRouting";
+import type { ApisAnswerSource } from "@/lib/apisRouting";
 
 
 
@@ -90,9 +93,15 @@ export type ChatMessage = {
 
   structuredAnswer?: StructuredApisAnswer;
 
+  authorityAnswer?: AuthorityStructuredAnswer;
+
+  answerSource?: ApisAnswerSource;
+
+  suggestedActions?: AuthorityAction[];
+
   // "fallback" lets the UI render the helper actions for unmatched questions.
 
-  variant?: "answer" | "clarification" | "fallback" | "welcome";
+  variant?: "answer" | "authority" | "mixed" | "clarification" | "fallback" | "welcome";
 
 };
 
