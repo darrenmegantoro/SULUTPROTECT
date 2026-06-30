@@ -2,9 +2,8 @@
 
 import { useState } from "react";
 import { ArrowRight } from "lucide-react";
-import { INDONESIAN_PROVINCES } from "@/data/provinces";
+import ProvinceCombobox from "@/components/ProvinceCombobox";
 import type { ConsumerData } from "@/types/guidedForm";
-import { cn } from "@/lib/utils";
 
 const EMPTY: ConsumerData = {
   nama: "",
@@ -35,7 +34,7 @@ export default function ConsumerDataStep({
   const errors = {
     nama: !value.nama.trim() ? "Nama wajib diisi." : "",
     telepon: !value.telepon.trim() ? "Nomor telepon wajib diisi." : "",
-    provinsi: !value.provinsi ? "Provinsi wajib dipilih." : "",
+    provinsi: !value.provinsi ? "Pilih provinsi terlebih dahulu." : "",
     kotaKabupaten: !value.kotaKabupaten.trim()
       ? "Kota/Kabupaten wajib diisi."
       : "",
@@ -118,22 +117,15 @@ export default function ConsumerDataStep({
           htmlFor="konsumen-provinsi"
           className="mb-1.5 block text-sm font-medium"
         >
-          Alamat Provinsi <span className="text-accentRed">*</span>
+          Provinsi <span className="text-accentRed">*</span>
         </label>
-        <select
+        <ProvinceCombobox
           id="konsumen-provinsi"
           value={value.provinsi}
-          onChange={(e) => onChange({ ...value, provinsi: e.target.value })}
-          className={cn(fieldClass, "bg-white")}
-          required
-        >
-          <option value="">Pilih provinsi</option>
-          {INDONESIAN_PROVINCES.map((prov) => (
-            <option key={prov} value={prov}>
-              {prov}
-            </option>
-          ))}
-        </select>
+          onChange={(prov) => onChange({ ...value, provinsi: prov })}
+          onBlur={() => setTouched(true)}
+          invalid={touched && Boolean(errors.provinsi)}
+        />
         {touched && errors.provinsi ? (
           <p className="mt-1 text-sm text-accentRed">{errors.provinsi}</p>
         ) : null}
@@ -163,7 +155,7 @@ export default function ConsumerDataStep({
 
       <div>
         <label htmlFor="konsumen-email" className="mb-1.5 block text-sm font-medium">
-          Email <span className="text-captionGray">(opsional)</span>
+          Email <span className="text-captionGray">(Opsional)</span>
         </label>
         <input
           id="konsumen-email"

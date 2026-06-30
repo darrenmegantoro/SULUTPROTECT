@@ -1,6 +1,6 @@
+// Prototype authentication only. Replace with secure authentication before production use.
 // Mock client-side authentication for the prototype. Replace with a real
 // auth provider/session later. State is kept in localStorage.
-
 import type { AuthState } from "@/types/admin";
 import { DEMO_CREDENTIAL } from "@/data/adminConfig";
 

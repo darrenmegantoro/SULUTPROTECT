@@ -2,11 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { ChevronDown, MessageCircle, Search, ExternalLink } from "lucide-react";
-import {
-  FAQ_BLOOM_FILTERS,
-  FAQ_KATEGORI_FILTERS,
-  faqBloomItems,
-} from "@/data/faq";
+import { FAQ_KATEGORI_FILTERS, faqBloomItems } from "@/data/faq";
 import { FRAUD_DEFINITION, mentionsFraud } from "@/data/glossary";
 import { APIS_ASK_LABEL, APIS_NAME } from "@/data/apis";
 import { getRelatedCTA, searchFaqBloom } from "@/lib/faqSearch";
@@ -27,18 +23,9 @@ function CategoryBadge({ kategori }: { kategori: string }) {
   );
 }
 
-function BloomBadge({ level }: { level: string }) {
-  return (
-    <span className="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-semibold text-amber-800">
-      {level}
-    </span>
-  );
-}
-
 export default function FAQSection({ initialQuery = "" }: FAQSectionProps) {
   const [query, setQuery] = useState(initialQuery);
   const [kategori, setKategori] = useState("Semua");
-  const [bloom, setBloom] = useState("Semua");
   const [openId, setOpenId] = useState<number | null>(null);
   const { openWithQuestion } = useChatbot();
 
@@ -57,12 +44,10 @@ export default function FAQSection({ initialQuery = "" }: FAQSectionProps) {
 
   const filteredItems = useMemo<FaqBloomItem[]>(() => {
     const base = query.trim() ? searchFaqBloom(query) : faqBloomItems;
-    return base.filter((item) => {
-      const kategoriOk = kategori === "Semua" || item.kategori === kategori;
-      const bloomOk = bloom === "Semua" || item.bloomTaxonomy === bloom;
-      return kategoriOk && bloomOk;
-    });
-  }, [query, kategori, bloom]);
+    return base.filter(
+      (item) => kategori === "Semua" || item.kategori === kategori
+    );
+  }, [query, kategori]);
 
   return (
     <section id="faq" className="bg-white py-14 sm:py-16">
@@ -91,58 +76,32 @@ export default function FAQSection({ initialQuery = "" }: FAQSectionProps) {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Cari FAQ... pertanyaan, jawaban, kategori, Bloom, basis hukum"
+            placeholder="Cari FAQ... pertanyaan, jawaban, atau kategori"
             className="w-full bg-transparent py-1.5 text-sm text-headlineBlack placeholder:text-captionGray focus:outline-none"
           />
         </div>
 
-        <div className="mt-4 space-y-3">
-          <div>
-            <span className="mb-2 block text-xs font-semibold uppercase tracking-wide text-captionGray">
-              Kategori
-            </span>
-            <div className="flex flex-wrap gap-2">
-              {FAQ_KATEGORI_FILTERS.map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => setKategori(option.value)}
-                  aria-pressed={kategori === option.value}
-                  className={cn(
-                    "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
-                    kategori === option.value
-                      ? "border-navyCore bg-navyCore text-white"
-                      : "border-hairlineDivider bg-white text-bodyTextGray hover:border-navyCore"
-                  )}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <span className="mb-2 block text-xs font-semibold uppercase tracking-wide text-captionGray">
-              Bloom Taxonomy
-            </span>
-            <div className="flex flex-wrap gap-2">
-              {FAQ_BLOOM_FILTERS.map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => setBloom(option.value)}
-                  aria-pressed={bloom === option.value}
-                  className={cn(
-                    "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
-                    bloom === option.value
-                      ? "border-navyCore bg-navyCore text-white"
-                      : "border-hairlineDivider bg-white text-bodyTextGray hover:border-navyCore"
-                  )}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
+        <div className="mt-4">
+          <span className="mb-2 block text-xs font-semibold uppercase tracking-wide text-captionGray">
+            Kategori
+          </span>
+          <div className="flex flex-wrap gap-2">
+            {FAQ_KATEGORI_FILTERS.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => setKategori(option.value)}
+                aria-pressed={kategori === option.value}
+                className={cn(
+                  "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+                  kategori === option.value
+                    ? "border-navyCore bg-navyCore text-white"
+                    : "border-hairlineDivider bg-white text-bodyTextGray hover:border-navyCore"
+                )}
+              >
+                {option.label}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -204,45 +163,13 @@ export default function FAQSection({ initialQuery = "" }: FAQSectionProps) {
                     hidden={!isOpen}
                     className="pb-5"
                   >
-                    <div className="mb-3 flex flex-wrap items-center gap-2">
+                    <div className="mb-3">
                       <CategoryBadge kategori={item.kategori} />
-                      <BloomBadge level={item.bloomTaxonomy} />
-                      <span className="text-[11px] text-captionGray">
-                        {item.levelKemahiran}
-                      </span>
                     </div>
 
                     <p className="whitespace-pre-line text-sm leading-relaxed text-bodyTextGray">
                       {item.jawaban}
                     </p>
-
-                    <details className="mt-3 rounded-lg border border-hairlineDivider bg-offWhiteSection p-3">
-                      <summary className="cursor-pointer text-xs font-semibold text-navyCore">
-                        Metadata Bloom
-                      </summary>
-                      <dl className="mt-2 space-y-1.5 text-xs text-bodyTextGray">
-                        <div>
-                          <dt className="font-semibold text-headlineBlack">
-                            Kompetensi inti
-                          </dt>
-                          <dd>{item.kompetensiInti}</dd>
-                        </div>
-                        <div>
-                          <dt className="font-semibold text-headlineBlack">
-                            Indikator perilaku
-                          </dt>
-                          <dd>{item.indikatorPerilaku}</dd>
-                        </div>
-                        <div>
-                          <dt className="font-semibold text-headlineBlack">
-                            Basis hukum utama
-                          </dt>
-                          <dd className="text-captionGray">
-                            {item.basisHukumUtama}
-                          </dd>
-                        </div>
-                      </dl>
-                    </details>
 
                     {mentionsFraud(item.pertanyaan, item.jawaban) ? (
                       <p className="mt-3 rounded-lg border border-hairlineDivider bg-offWhiteSection p-3 text-xs leading-relaxed text-bodyTextGray">

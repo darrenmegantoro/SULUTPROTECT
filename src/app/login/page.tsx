@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ShieldCheck, LogIn } from "lucide-react";
 import { login } from "@/lib/auth";
-import { DEMO_CREDENTIAL } from "@/data/adminConfig";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -57,7 +56,7 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full rounded-subtle border border-hairlineDivider px-3 py-2.5 text-sm text-headlineBlack placeholder:text-captionGray focus-visible:border-navyCore"
-              placeholder="admin@sulutprotect.local"
+              placeholder="Masukkan email"
               required
             />
           </div>
@@ -75,7 +74,7 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full rounded-subtle border border-hairlineDivider px-3 py-2.5 text-sm text-headlineBlack placeholder:text-captionGray focus-visible:border-navyCore"
-              placeholder="••••••••"
+              placeholder="Masukkan kata sandi"
               required
             />
           </div>
@@ -98,15 +97,9 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className="mt-6 rounded-lg border border-hairlineDivider bg-offWhiteSection p-3 text-xs leading-relaxed text-bodyTextGray">
-          <p className="font-semibold text-headlineBlack">Kredensial demo:</p>
-          <p>Email: {DEMO_CREDENTIAL.email}</p>
-          <p>Password: {DEMO_CREDENTIAL.password}</p>
-        </div>
-
         <Link
           href="/"
-          className="mt-5 inline-block text-sm font-semibold text-linkBlue hover:underline"
+          className="mt-6 inline-block text-sm font-semibold text-linkBlue hover:underline"
         >
           ← Kembali ke situs publik
         </Link>
