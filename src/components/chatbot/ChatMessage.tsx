@@ -1,5 +1,6 @@
 "use client";
 
+import { forwardRef } from "react";
 import { User } from "lucide-react";
 import type { ChatMessage as ChatMessageType } from "@/types/faq";
 import { cn } from "@/lib/utils";
@@ -13,10 +14,8 @@ type ChatMessageProps = {
 };
 
 // Renders a single chat bubble for either the user or the assistant.
-export default function ChatMessage({
-  message,
-  onSelectQuestion,
-}: ChatMessageProps) {
+const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
+  function ChatMessage({ message, onSelectQuestion }, ref) {
   const isUser = message.role === "user";
 
   if (isUser) {
@@ -33,7 +32,7 @@ export default function ChatMessage({
   }
 
   return (
-    <div className="flex items-start gap-2">
+    <div ref={ref} className="flex items-start gap-2">
       <ApisAvatar size="sm" className="mt-0.5 ring-navyCore/20" />
       <div
         className={cn(
@@ -89,4 +88,6 @@ export default function ChatMessage({
       </div>
     </div>
   );
-}
+});
+
+export default ChatMessage;

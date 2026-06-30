@@ -336,12 +336,7 @@ export const GUIDED_RESULTS: Record<ResultKey, GuidedResult> = {
     checklist: BI_DOCUMENT_CHECKLIST,
     ctas: [
       { label: "Lanjut ke BI Bicara", href: EXTERNAL_LINKS.biBicara, variant: "primary" },
-      {
-        label: "Formulir Pengajuan Fasilitasi",
-        href: EXTERNAL_LINKS.formulirFasilitasi,
-        variant: "primary",
-      },
-      { label: "Tata Tertib", href: EXTERNAL_LINKS.tataTertib, variant: "primary" },
+      { label: "Baca FAQ Terkait", to: "/faq", variant: "secondary" },
     ],
     askQuestion: "Dokumen apa yang perlu disiapkan sebelum ke BI Bicara?",
     relatedFocus: "Kerugian Konsumen",

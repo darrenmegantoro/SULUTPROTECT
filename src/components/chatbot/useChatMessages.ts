@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { ChatMessage as ChatMessageType } from "@/types/faq";
 import {
   formatAuthorityAnswer,
@@ -10,9 +10,9 @@ import {
 import { uid } from "@/lib/utils";
 import { FRAUD_DEFINITION, mentionsFraud } from "@/data/glossary";
 import { captureInteraction } from "@/lib/interactionCapture";
-import { APIS_NAME } from "@/data/apis";
+import { APIS_GREETING } from "@/data/apis";
 
-export const WELCOME_TEXT = `Halo, saya ${APIS_NAME}. Saya dapat membantu Anda mencari informasi dari FAQ terkait pengaduan Konsumen, dokumen, batas waktu, kanal BI Bicara, LAPS SJK, dan proses penanganan pengaduan oleh Bank Indonesia. Saya juga dapat memberikan arahan awal jika permasalahan berada di luar ruang lingkup Bank Indonesia.`;
+export const WELCOME_TEXT = APIS_GREETING;
 
 export const FALLBACK_TEXT =
   "Maaf, APIS belum menemukan jawaban yang cukup sesuai di basis FAQ. Anda dapat mencoba menggunakan kata kunci lain, membuka FAQ, atau mengisi Formulir Panduan Pengaduan agar sistem membantu mengarahkan kanal yang tepat.";
@@ -27,6 +27,46 @@ export const SUGGESTED_QUESTIONS = [
   "Bagaimana membedakan apakah saya harus mengadu ke BI, OJK, atau polisi?",
   "Apa yang harus saya lakukan jika merasa menjadi korban transfer dana terindikasi fraud?",
 ];
+
+const LONG_ANSWER_THRESHOLD = 400;
+
+function isLongAssistantMessage(message: ChatMessageType): boolean {
+  if (message.role !== "assistant") return false;
+  if (message.variant === "welcome" || message.variant === "clarification") {
+    return false;
+  }
+  return message.content.length >= LONG_ANSWER_THRESHOLD;
+}
+
+export function useChatScroll(messages: ChatMessageType[]) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const latestAssistantRef = useRef<HTMLDivElement>(null);
+
+  const latestAssistantId =
+    messages.length > 0 && messages[messages.length - 1].role === "assistant"
+      ? messages[messages.length - 1].id
+      : null;
+
+  useEffect(() => {
+    const lastMessage = messages[messages.length - 1];
+    if (!lastMessage) return;
+
+    if (
+      lastMessage.role === "assistant" &&
+      isLongAssistantMessage(lastMessage) &&
+      latestAssistantRef.current
+    ) {
+      latestAssistantRef.current.scrollIntoView({
+        block: "start",
+        behavior: "smooth",
+      });
+    } else if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  return { scrollRef, latestAssistantRef, latestAssistantId };
+}
 
 function createWelcomeMessage(): ChatMessageType {
   return {

@@ -5,7 +5,7 @@ import { RotateCcw, Send, X } from "lucide-react";
 import { useChatbot } from "./ChatbotProvider";
 import ChatMessage from "./ChatMessage";
 import SuggestedQuestions from "./SuggestedQuestions";
-import { useChatMessages, SUGGESTED_QUESTIONS } from "./useChatMessages";
+import { useChatMessages, SUGGESTED_QUESTIONS, useChatScroll } from "./useChatMessages";
 import { APIS_NAME } from "@/data/apis";
 import ApisAvatar from "./ApisAvatar";
 
@@ -13,7 +13,7 @@ export default function ChatbotPanel() {
   const { isOpen, close, pendingQuestion, clearPendingQuestion } = useChatbot();
   const { messages, sendQuestion, reset, isFresh } = useChatMessages();
   const [input, setInput] = useState("");
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const { scrollRef, latestAssistantRef, latestAssistantId } = useChatScroll(messages);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleSend = (value: string) => {
@@ -28,13 +28,6 @@ export default function ChatbotPanel() {
       clearPendingQuestion();
     }
   }, [isOpen, pendingQuestion, sendQuestion, clearPendingQuestion]);
-
-  // Keep the latest message in view.
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages]);
 
   // Focus the input when the panel opens.
   useEffect(() => {
@@ -94,6 +87,7 @@ export default function ChatbotPanel() {
             key={message.id}
             message={message}
             onSelectQuestion={handleSend}
+            ref={message.id === latestAssistantId ? latestAssistantRef : undefined}
           />
         ))}
 

@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { RotateCcw, Send } from "lucide-react";
 import ChatMessage from "@/components/chatbot/ChatMessage";
 import SuggestedQuestions from "@/components/chatbot/SuggestedQuestions";
 import {
   useChatMessages,
   SUGGESTED_QUESTIONS,
+  useChatScroll,
 } from "@/components/chatbot/useChatMessages";
 import { APIS_NAME } from "@/data/apis";
 import ApisAvatar from "@/components/chatbot/ApisAvatar";
@@ -14,18 +15,12 @@ import ApisAvatar from "@/components/chatbot/ApisAvatar";
 export default function AsistenPage() {
   const { messages, sendQuestion, reset, isFresh } = useChatMessages();
   const [input, setInput] = useState("");
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const { scrollRef, latestAssistantRef, latestAssistantId } = useChatScroll(messages);
 
   const handleSend = (value: string) => {
     sendQuestion(value);
     setInput("");
   };
-
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages]);
 
   return (
     <section className="bg-offWhiteSection py-10 sm:py-14">
@@ -77,6 +72,7 @@ export default function AsistenPage() {
                 key={message.id}
                 message={message}
                 onSelectQuestion={handleSend}
+                ref={message.id === latestAssistantId ? latestAssistantRef : undefined}
               />
             ))}
 

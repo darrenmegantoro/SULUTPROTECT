@@ -31,31 +31,36 @@ const ACCENT_BAR: Record<ResultBadgeTone, string> = {
   neutral: "bg-captionGray",
 };
 
-function renderLinkedText(text: string, links?: DescriptionLink[]) {
+function renderLinkedText(text: string, links?: DescriptionLink[]): ReactNode {
   if (!links?.length) return text;
 
-  let nodes: ReactNode[] = [text];
+  let earliest: { link: DescriptionLink; idx: number } | null = null;
   for (const link of links) {
     const idx = text.indexOf(link.phrase);
-    if (idx === -1) continue;
-    const before = text.slice(0, idx);
-    const after = text.slice(idx + link.phrase.length);
-    return (
-      <>
-        {before}
-        <a
-          href={link.href}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="font-semibold text-linkBlue hover:underline"
-        >
-          {link.phrase}
-        </a>
-        {after}
-      </>
-    );
+    if (idx !== -1 && (earliest === null || idx < earliest.idx)) {
+      earliest = { link, idx };
+    }
   }
-  return text;
+  if (!earliest) return text;
+
+  const before = text.slice(0, earliest.idx);
+  const after = text.slice(earliest.idx + earliest.link.phrase.length);
+  const remainingLinks = links.filter((l) => l.phrase !== earliest!.link.phrase);
+
+  return (
+    <>
+      {before}
+      <a
+        href={earliest.link.href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="font-semibold text-linkBlue hover:underline"
+      >
+        {earliest.link.phrase}
+      </a>
+      {renderLinkedText(after, remainingLinks)}
+    </>
+  );
 }
 
 function renderChecklistLabel(label: string, inlineLink?: DescriptionLink) {
