@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ShieldCheck, LogIn } from "lucide-react";
+import { LogIn } from "lucide-react";
+import BrandLogo from "@/components/BrandLogo";
 import { login } from "@/lib/auth";
 
 export default function LoginPage() {
@@ -26,9 +27,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-offWhiteSection px-4 py-10">
       <div className="w-full max-w-md rounded-xl border border-hairlineDivider bg-white p-8 shadow-card">
         <div className="flex items-center gap-2.5">
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-navyCore text-white">
-            <ShieldCheck className="h-5 w-5" aria-hidden="true" />
-          </span>
+          <BrandLogo size={40} />
           <span className="text-base font-bold text-navyCore">
             SULUT PROTECT
           </span>

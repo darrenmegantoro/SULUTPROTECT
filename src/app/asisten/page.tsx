@@ -11,11 +11,13 @@ import {
 } from "@/components/chatbot/useChatMessages";
 import { APIS_NAME } from "@/data/apis";
 import ApisAvatar from "@/components/chatbot/ApisAvatar";
+import { assignMessageRef } from "@/lib/assignMessageRef";
 
 export default function AsistenPage() {
   const { messages, sendQuestion, reset, isFresh } = useChatMessages();
   const [input, setInput] = useState("");
-  const { scrollRef, latestAssistantRef, latestAssistantId } = useChatScroll(messages);
+  const { scrollRef, latestAssistantRef, firstAssistantRef, latestAssistantId, firstAssistantId } =
+    useChatScroll(messages);
 
   const handleSend = (value: string) => {
     sendQuestion(value);
@@ -72,7 +74,16 @@ export default function AsistenPage() {
                 key={message.id}
                 message={message}
                 onSelectQuestion={handleSend}
-                ref={message.id === latestAssistantId ? latestAssistantRef : undefined}
+                ref={(node) =>
+                  assignMessageRef(
+                    node,
+                    message.id,
+                    latestAssistantId,
+                    firstAssistantId,
+                    latestAssistantRef,
+                    firstAssistantRef
+                  )
+                }
               />
             ))}
 

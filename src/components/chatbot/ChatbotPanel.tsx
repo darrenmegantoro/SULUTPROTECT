@@ -8,12 +8,14 @@ import SuggestedQuestions from "./SuggestedQuestions";
 import { useChatMessages, SUGGESTED_QUESTIONS, useChatScroll } from "./useChatMessages";
 import { APIS_NAME } from "@/data/apis";
 import ApisAvatar from "./ApisAvatar";
+import { assignMessageRef } from "@/lib/assignMessageRef";
 
 export default function ChatbotPanel() {
   const { isOpen, close, pendingQuestion, clearPendingQuestion } = useChatbot();
   const { messages, sendQuestion, reset, isFresh } = useChatMessages();
   const [input, setInput] = useState("");
-  const { scrollRef, latestAssistantRef, latestAssistantId } = useChatScroll(messages);
+  const { scrollRef, latestAssistantRef, firstAssistantRef, latestAssistantId, firstAssistantId } =
+    useChatScroll(messages, { panelOpen: isOpen, alignToWelcome: isFresh });
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleSend = (value: string) => {
@@ -87,7 +89,16 @@ export default function ChatbotPanel() {
             key={message.id}
             message={message}
             onSelectQuestion={handleSend}
-            ref={message.id === latestAssistantId ? latestAssistantRef : undefined}
+            ref={(node) =>
+              assignMessageRef(
+                node,
+                message.id,
+                latestAssistantId,
+                firstAssistantId,
+                latestAssistantRef,
+                firstAssistantRef
+              )
+            }
           />
         ))}
 

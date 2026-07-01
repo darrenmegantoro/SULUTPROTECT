@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { ArrowRight, ClipboardList } from "lucide-react";
 
+import { SITE_ASSETS } from "@/data/siteAssets";
+
 const HERO_BACKGROUND_STYLE: React.CSSProperties = {
-  backgroundImage:
-    "linear-gradient(rgba(19, 41, 79, 0.76), rgba(19, 41, 79, 0.76)), url('/images/hero-background.jpg')",
+  backgroundImage: `linear-gradient(rgba(19, 41, 79, 0.76), rgba(19, 41, 79, 0.76)), url('${SITE_ASSETS.heroBackground}')`,
   backgroundSize: "cover",
   backgroundPosition: "center",
 };

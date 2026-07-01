@@ -38,34 +38,70 @@ function isLongAssistantMessage(message: ChatMessageType): boolean {
   return message.content.length >= LONG_ANSWER_THRESHOLD;
 }
 
-export function useChatScroll(messages: ChatMessageType[]) {
+export function useChatScroll(
+  messages: ChatMessageType[],
+  options?: { panelOpen?: boolean; alignToWelcome?: boolean }
+) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const latestAssistantRef = useRef<HTMLDivElement>(null);
+  const firstAssistantRef = useRef<HTMLDivElement>(null);
 
   const latestAssistantId =
     messages.length > 0 && messages[messages.length - 1].role === "assistant"
       ? messages[messages.length - 1].id
       : null;
 
+  const firstAssistantId =
+    messages.find((message) => message.role === "assistant")?.id ?? null;
+
+  const scrollAssistantToStart = (
+    ref: React.RefObject<HTMLDivElement | null>,
+    behavior: ScrollBehavior = "auto"
+  ) => {
+    ref.current?.scrollIntoView({ block: "start", behavior });
+  };
+
   useEffect(() => {
     const lastMessage = messages[messages.length - 1];
     if (!lastMessage) return;
 
-    if (
-      lastMessage.role === "assistant" &&
-      isLongAssistantMessage(lastMessage) &&
-      latestAssistantRef.current
-    ) {
-      latestAssistantRef.current.scrollIntoView({
-        block: "start",
-        behavior: "smooth",
-      });
-    } else if (scrollRef.current) {
+    if (lastMessage.role === "assistant") {
+      if (
+        lastMessage.variant === "welcome" ||
+        (messages.length === 1 && lastMessage.role === "assistant")
+      ) {
+        scrollAssistantToStart(firstAssistantRef, "auto");
+        return;
+      }
+
+      if (isLongAssistantMessage(lastMessage)) {
+        scrollAssistantToStart(latestAssistantRef, "smooth");
+        return;
+      }
+    }
+
+    if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
 
-  return { scrollRef, latestAssistantRef, latestAssistantId };
+  useEffect(() => {
+    if (!options?.panelOpen || options.alignToWelcome === false) return;
+
+    const frame = requestAnimationFrame(() => {
+      scrollAssistantToStart(firstAssistantRef, "auto");
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [options?.panelOpen, options?.alignToWelcome, messages]);
+
+  return {
+    scrollRef,
+    latestAssistantRef,
+    firstAssistantRef,
+    latestAssistantId,
+    firstAssistantId,
+  };
 }
 
 function createWelcomeMessage(): ChatMessageType {

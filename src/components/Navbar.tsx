@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X, ShieldCheck } from "lucide-react";
+import { Menu, X } from "lucide-react";
+import BrandLogo from "@/components/BrandLogo";
 import { cn } from "@/lib/utils";
 import { APIS_NAME } from "@/data/apis";
 
@@ -31,9 +32,7 @@ export default function Navbar() {
     <header className="sticky top-0 z-40 w-full border-b border-hairlineDivider bg-white">
       <nav className="container-bi flex min-h-[72px] items-center justify-between gap-4 py-2">
         <Link href="/" className="flex items-center gap-2.5" onClick={closeMobile}>
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-navyCore text-white">
-            <ShieldCheck className="h-5 w-5" aria-hidden="true" />
-          </span>
+          <BrandLogo size={40} />
           <span className="leading-tight">
             <span className="block text-base font-bold text-navyCore">
               SULUT PROTECT

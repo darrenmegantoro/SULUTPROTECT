@@ -1,5 +1,6 @@
 import type { AdminSettings } from "@/types/admin";
 import { EXTERNAL_LINKS } from "@/data/links";
+import { SITE_ASSETS } from "@/data/siteAssets";
 
 // Demo credential for the prototype's mock authentication.
 export const DEMO_CREDENTIAL = {
@@ -54,7 +55,7 @@ export const DEFAULT_ADMIN_SETTINGS: AdminSettings = {
     lapsSjk: EXTERNAL_LINKS.lapsSjk,
     cekPenyelenggara: EXTERNAL_LINKS.cekPenyelenggara,
   },
-  heroBackgroundPath: "/images/hero-background.jpg",
+  heroBackgroundPath: SITE_ASSETS.heroBackground,
   contact: {
     officeName: "Kantor Perwakilan Bank Indonesia Provinsi Sulawesi Utara",
     address: "Jl. 17 Agustus No. 56",

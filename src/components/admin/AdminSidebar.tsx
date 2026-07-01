@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ShieldCheck } from "lucide-react";
+import BrandLogo from "@/components/BrandLogo";
 import { cn } from "@/lib/utils";
 import { ADMIN_NAV } from "./adminNav";
 
@@ -12,9 +12,7 @@ export default function AdminSidebar() {
   return (
     <aside className="hidden w-64 shrink-0 flex-col border-r border-navyDeep/40 bg-navyDeep text-white md:flex">
       <div className="flex items-center gap-2.5 border-b border-white/10 px-5 py-5">
-        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15">
-          <ShieldCheck className="h-5 w-5" aria-hidden="true" />
-        </span>
+        <BrandLogo size={36} className="bg-white/15" />
         <div className="leading-tight">
           <p className="text-sm font-bold">SULUT PROTECT</p>
           <p className="text-[10px] text-white/70">Integrated Dashboard</p>
