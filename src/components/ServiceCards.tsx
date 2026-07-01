@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, HelpCircle, MessageCircle } from "lucide-react";
-import { APIS_NAME } from "@/data/apis";
+import { APIS_ASK_LABEL, APIS_NAME } from "@/data/apis";
 
 const HELP_CARDS = [
   {
@@ -15,7 +15,7 @@ const HELP_CARDS = [
     title: APIS_NAME,
     description:
       "Dapatkan panduan dan bantuan instan 24/7 melalui asisten virtual cerdas kami yang siap melayani setiap saat.",
-    cta: "Buka APIS",
+    cta: APIS_ASK_LABEL,
     href: "/asisten",
     icon: MessageCircle,
   },

@@ -38,7 +38,7 @@ export default function BrandLogo({ size = 40, className }: BrandLogoProps) {
       alt="Logo SULUT PROTECT"
       width={size}
       height={size}
-      className={cn("shrink-0 rounded-full object-contain", className)}
+      className={cn("shrink-0 object-contain", className)}
       onError={() => setFailed(true)}
       priority
     />
