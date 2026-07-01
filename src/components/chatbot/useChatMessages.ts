@@ -216,6 +216,11 @@ export function useChatMessages() {
     const signals = analyzeQuery(question);
     const authorityRoute = resolveAuthorityRoute(signals);
 
+    const apisSource =
+      result.type !== "fallback"
+        ? mapApisSource(result.answerSource)
+        : undefined;
+
     captureInteraction({
       channel: "APIS",
       category:
@@ -224,6 +229,10 @@ export function useChatMessages() {
           : result.type === "authority" || result.type === "mixed"
             ? "Arahan kewenangan"
             : undefined,
+      faqCategory:
+        result.type === "answer" || result.type === "mixed"
+          ? result.item.kategori
+          : undefined,
       query: question,
       matchedFaqId:
         result.type === "answer" || result.type === "mixed"
@@ -234,14 +243,13 @@ export function useChatMessages() {
           ? result.item.pertanyaan
           : undefined,
       matchedAuthorityRouteId: authorityRoute?.id,
-      apisSource:
-        result.type !== "fallback"
-          ? mapApisSource(result.answerSource)
-          : undefined,
+      apisSource,
       recommendation,
       isCompleted: result.type !== "fallback",
       needsKnowledgeReview:
-        result.type === "fallback" || recommendation === "Tidak ditemukan di FAQ",
+        apisSource === "AUTHORITY_ROUTING" ||
+        apisSource === "CLARIFICATION",
+      status: "Baru",
     });
   }, []);
 

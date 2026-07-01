@@ -1,6 +1,6 @@
 "use client";
 
-import type { Bucket } from "@/data/mockDashboard";
+import type { Bucket } from "@/lib/dashboardMetrics";
 
 // Dependency-free chart primitives (CSS/SVG) to avoid extra packages.
 

@@ -9,14 +9,14 @@ import type {
   AuditEntry,
 } from "@/types/admin";
 import type { InteractionRecord } from "@/types/interactions";
-import { FAQ_ITEMS, kategoriLabel } from "@/data/faq";
+import { faqBloomItems } from "@/data/faqBloom";
 import { GUIDED_QUESTIONS } from "@/data/guidedForm";
 import { DEFAULT_ADMIN_SETTINGS } from "@/data/adminConfig";
 import {
-  ensureInteractionStore,
-  listInteractions,
+  getInteractions as readInteractions,
+  runDashboardDataMigration,
   saveInteractions as persistInteractions,
-  updateInteractionRecord,
+  updateInteraction as patchInteraction,
 } from "@/lib/interactionStore";
 import { uid } from "@/lib/utils";
 
@@ -54,15 +54,15 @@ function write<T>(key: string, value: T): void {
 
 function seedFaq(): AdminFAQItem[] {
   const now = new Date().toISOString();
-  return FAQ_ITEMS.map((item) => ({
-    id: item.id,
-    focus: item.focus,
-    category: kategoriLabel(item.focus),
-    question: item.question,
-    answer: item.answer,
-    keywords: item.keywords ?? [],
-    source: item.source,
-    reference: item.reference,
+  return faqBloomItems.map((item) => ({
+    id: String(item.id),
+    focus: item.kategori,
+    category: item.kategori,
+    question: item.pertanyaan,
+    answer: item.jawaban,
+    keywords: [],
+    source: item.basisHukumUtama,
+    reference: item.basisHukumUtama,
     status: "Published",
     active: true,
     updatedAt: now,
@@ -92,8 +92,13 @@ function seedFormQuestions(): AdminFormQuestion[] {
 
 export function ensureSeeded(): void {
   if (!isBrowser()) return;
-  ensureInteractionStore();
-  if (!window.localStorage.getItem(KEYS.faq)) write(KEYS.faq, seedFaq());
+  runDashboardDataMigration();
+
+  const existingFaqs = read<AdminFAQItem[]>(KEYS.faq, []);
+  if (!existingFaqs.length || existingFaqs.length !== faqBloomItems.length) {
+    write(KEYS.faq, seedFaq());
+  }
+
   if (!window.localStorage.getItem(KEYS.form))
     write(KEYS.form, seedFormQuestions());
   if (!window.localStorage.getItem(KEYS.settings))
@@ -182,7 +187,7 @@ export function updateFormQuestion(
 
 export function getInteractions(): InteractionRecord[] {
   ensureSeeded();
-  return listInteractions();
+  return readInteractions();
 }
 
 export function saveInteractions(list: InteractionRecord[]): void {
@@ -195,7 +200,7 @@ export function updateInteraction(
   actor?: string,
   auditAction?: string
 ): void {
-  const updated = updateInteractionRecord(id, patch);
+  const updated = patchInteraction(id, patch);
   if (updated && actor && auditAction) {
     addAudit({ actor, action: auditAction, target: id });
   }

@@ -1,14 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { X } from "lucide-react";
-import type { InteractionRecord, InteractionStatus, ReroutingUnit } from "@/types/interactions";
-import {
-  getInteractionLocation,
-  INTERACTION_STATUSES,
-  REROUTING_UNITS,
-} from "@/types/interactions";
-import { updateInteraction } from "@/lib/adminStore";
+import type { InteractionRecord } from "@/types/interactions";
 import { formatInteractionChannel } from "@/data/apis";
 import { formatWitaDateTime } from "@/lib/timezone";
 
@@ -23,38 +16,34 @@ function Row({ label, value }: { label: string; value?: string }) {
   );
 }
 
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <h3 className="text-xs font-bold uppercase tracking-wide text-navyCore">
+        {title}
+      </h3>
+      <div className="mt-2 divide-y divide-hairlineDivider rounded-lg border border-hairlineDivider bg-offWhiteSection/40 px-3">
+        {children}
+      </div>
+    </div>
+  );
+}
+
 export default function InteractionDetail({
   record,
-  actor,
   onClose,
 }: {
   record: InteractionRecord;
-  actor: string;
   onClose: () => void;
 }) {
-  const [unit, setUnit] = useState(record.reroutingUnit ?? "");
-  const [status, setStatus] = useState<InteractionStatus>(
-    record.status ?? "Baru"
-  );
-  const [reroutingStatus, setReroutingStatus] = useState(
-    record.reroutingStatus ?? ""
-  );
-  const [notes, setNotes] = useState(record.analystNote ?? "");
-
-  const handleSave = () => {
-    updateInteraction(
-      record.id,
-      {
-        reroutingUnit: unit ? (unit as ReroutingUnit) : undefined,
-        status,
-        reroutingStatus: reroutingStatus || undefined,
-        analystNote: notes || undefined,
-      },
-      actor,
-      "Interaksi diperbarui (rerouting/catatan)"
-    );
-    onClose();
-  };
+  const waktu =
+    record.createdAtWita ?? formatWitaDateTime(record.createdAt);
 
   return (
     <div
@@ -77,144 +66,122 @@ export default function InteractionDetail({
           </button>
         </div>
 
-        <div className="space-y-4 px-5 py-4">
-          <div className="divide-y divide-hairlineDivider">
-            <Row
-              label="Waktu (WITA)"
-              value={record.createdAtWita ?? formatWitaDateTime(record.createdAt)}
-            />
-            <Row label="Kanal" value={formatInteractionChannel(record.channel)} />
-            <Row label="Kategori" value={record.category} />
-            <Row label="Query / Pertanyaan" value={record.query} />
-            <Row label="Rekomendasi" value={record.recommendation} />
-            <Row label="Hasil Formulir" value={record.resultKey} />
-            <Row label="Bidang Penyelenggara" value={record.organizerField} />
-            <Row label="Nama Konsumen" value={record.consumerName} />
-            <Row label="Telepon" value={record.phone} />
-            <Row label="Email" value={record.email} />
-            <Row label="Provinsi" value={record.province} />
-            <Row label="Kota/Kabupaten" value={record.cityOrRegency} />
-            <Row label="Lokasi" value={getInteractionLocation(record)} />
-            <Row label="FAQ Cocok" value={record.matchedFaqQuestion} />
-            <Row label="Sumber APIS" value={record.apisSource} />
-            <Row label="Rute Kewenangan" value={record.matchedAuthorityRouteId} />
-            <Row
-              label="Perlu Review KB"
-              value={record.needsKnowledgeReview ? "Ya" : "Tidak"}
-            />
-          </div>
+        <div className="space-y-5 px-5 py-4">
+          {record.channel === "Formulir" ? (
+            <>
+              <Section title="Data Konsumen">
+                <Row label="Nama" value={record.consumerName} />
+                <Row label="Nomor Telepon" value={record.phone} />
+                <Row label="Email" value={record.email} />
+                <Row label="Provinsi" value={record.province} />
+                <Row label="Kota/Kabupaten" value={record.cityOrRegency} />
+              </Section>
 
-          {record.answers && record.answers.length > 0 ? (
-            <div>
-              <p className="text-xs font-semibold text-captionGray">
-                Jawaban Formulir
-              </p>
-              <ul className="mt-1 space-y-2 text-sm text-bodyTextGray">
-                {record.answers.map((entry) => (
-                  <li key={entry.questionId}>
-                    <span className="font-medium text-headlineBlack">
-                      {entry.questionText}
-                    </span>
-                    <br />
-                    {entry.answer}
-                  </li>
-                ))}
-              </ul>
-            </div>
+              <Section title="Ringkasan Interaksi">
+                <Row label="ID" value={record.id} />
+                <Row label="Waktu WITA" value={waktu} />
+                <Row
+                  label="Kanal"
+                  value={formatInteractionChannel(record.channel)}
+                />
+                <Row label="Kategori" value={record.category} />
+                <Row
+                  label="Bidang Penyelenggara / Pelaku terkait"
+                  value={record.organizerField}
+                />
+                <Row
+                  label="Rekomendasi / Result"
+                  value={record.recommendation}
+                />
+                <Row label="Status" value={record.status} />
+                <Row
+                  label="Rerouting"
+                  value={
+                    record.reroutingStatus ??
+                    (record.reroutingUnit
+                      ? `Rerouting ke ${record.reroutingUnit}`
+                      : undefined)
+                  }
+                />
+              </Section>
+
+              {record.answers && record.answers.length > 0 ? (
+                <div>
+                  <h3 className="text-xs font-bold uppercase tracking-wide text-navyCore">
+                    Jawaban Formulir
+                  </h3>
+                  <ul className="mt-2 space-y-3 text-sm text-bodyTextGray">
+                    {record.answers.map((entry) => (
+                      <li
+                        key={entry.questionId}
+                        className="rounded-lg border border-hairlineDivider bg-offWhiteSection/40 p-3"
+                      >
+                        <p className="font-medium text-headlineBlack">
+                          {entry.questionText}
+                        </p>
+                        <p className="mt-1">{entry.answer}</p>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+            </>
           ) : null}
 
-          {record.answerSummary && record.answerSummary.length > 0 ? (
-            <div>
-              <p className="text-xs font-semibold text-captionGray">
-                Ringkasan Jawaban
-              </p>
-              <ul className="mt-1 list-inside list-disc text-sm text-bodyTextGray">
-                {record.answerSummary.map((a, i) => (
-                  <li key={i}>{a}</li>
-                ))}
-              </ul>
-            </div>
+          {record.channel === "FAQ" ? (
+            <Section title="Interaksi FAQ">
+              <Row label="ID" value={record.id} />
+              <Row label="Waktu WITA" value={waktu} />
+              <Row label="Kanal" value="FAQ" />
+              <Row label="Query / Pencarian" value={record.query} />
+              <Row
+                label="FAQ Dibuka / Cocok"
+                value={record.matchedFaqQuestion}
+              />
+              <Row
+                label="Kategori"
+                value={record.faqCategory ?? record.category}
+              />
+              <Row label="Status" value={record.status} />
+            </Section>
           ) : null}
 
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div>
-              <label className="mb-1 block text-xs font-semibold text-captionGray">
-                Tugaskan ke Unit
-              </label>
-              <select
-                value={unit}
-                onChange={(e) => setUnit(e.target.value)}
-                className="w-full rounded-subtle border border-hairlineDivider px-3 py-2 text-sm"
-              >
-                <option value="">Belum ditugaskan</option>
-                {REROUTING_UNITS.map((u) => (
-                  <option key={u} value={u}>
-                    {u}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-semibold text-captionGray">
-                Status
-              </label>
-              <select
-                value={status}
-                onChange={(e) =>
-                  setStatus(e.target.value as InteractionStatus)
-                }
-                className="w-full rounded-subtle border border-hairlineDivider px-3 py-2 text-sm"
-              >
-                {INTERACTION_STATUSES.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+          {record.channel === "APIS" ? (
+            <Section title="Interaksi APIS">
+              <Row label="ID" value={record.id} />
+              <Row label="Waktu WITA" value={waktu} />
+              <Row label="Kanal" value="APIS" />
+              <Row label="Pertanyaan Pengguna" value={record.query} />
+              <Row label="Sumber Jawaban" value={record.apisSource} />
+              <Row label="FAQ Cocok" value={record.matchedFaqQuestion} />
+              <Row
+                label="Rute Kewenangan"
+                value={record.matchedAuthorityRouteId}
+              />
+              <Row
+                label="Perlu Review KB"
+                value={record.needsKnowledgeReview ? "Ya" : "Tidak"}
+              />
+              <Row label="Status" value={record.status} />
+            </Section>
+          ) : null}
 
-          <div>
-            <label className="mb-1 block text-xs font-semibold text-captionGray">
-              Status Rerouting (detail)
-            </label>
-            <input
-              type="text"
-              value={reroutingStatus}
-              onChange={(e) => setReroutingStatus(e.target.value)}
-              placeholder="Contoh: Diteruskan ke Unit"
-              className="w-full rounded-subtle border border-hairlineDivider px-3 py-2 text-sm"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-xs font-semibold text-captionGray">
-              Catatan Analis
-            </label>
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={3}
-              placeholder="Catatan untuk monitoring dan pengambilan keputusan antarunit…"
-              className="w-full rounded-subtle border border-hairlineDivider px-3 py-2 text-sm"
-            />
-          </div>
+          {record.analystNote ? (
+            <Section title="Catatan Analis">
+              <p className="px-1 py-2 text-sm text-bodyTextGray">
+                {record.analystNote}
+              </p>
+            </Section>
+          ) : null}
         </div>
 
-        <div className="flex justify-end gap-2 border-t border-hairlineDivider px-5 py-4">
+        <div className="flex justify-end border-t border-hairlineDivider px-5 py-4">
           <button
             type="button"
             onClick={onClose}
             className="rounded-subtle border border-hairlineDivider px-4 py-2 text-sm font-semibold text-bodyTextGray hover:bg-offWhiteSection"
           >
-            Batal
-          </button>
-          <button
-            type="button"
-            onClick={handleSave}
-            className="rounded-subtle bg-navyCore px-4 py-2 text-sm font-semibold text-white hover:bg-navyDeep"
-          >
-            Simpan
+            Tutup
           </button>
         </div>
       </div>

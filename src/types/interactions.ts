@@ -6,7 +6,10 @@ export type ApisAnswerSource =
   | "AUTHORITY_ROUTING"
   | "CLARIFICATION";
 
-export type InteractionStatus = "Baru" | "Selesai" | "Perlu Tindak Lanjut";
+export type InteractionStatus =
+  | "Baru"
+  | "Selesai"
+  | "Perlu Tindak Lanjut";
 
 export type ReroutingUnit =
   | "FPKP"
@@ -73,6 +76,7 @@ export type InteractionRecord = {
   query?: string;
   matchedFaqId?: string;
   matchedFaqQuestion?: string;
+  faqCategory?: string;
   apisSource?: ApisAnswerSource;
   matchedAuthorityRouteId?: string;
   needsKnowledgeReview?: boolean;
@@ -81,32 +85,41 @@ export type InteractionRecord = {
   reroutingUnit?: ReroutingUnit;
   reroutingStatus?: string;
   analystNote?: string;
+  updatedAt?: string;
 };
 
-/** Payload from public website before persistence adds id and WITA timestamps. */
+/** Payload before persistence adds id and WITA timestamps. */
 export type InteractionCapturePayload = Omit<
   InteractionRecord,
   "id" | "createdAt" | "createdAtWita" | "yearWita" | "monthWita" | "dayWita"
 >;
 
-export const INTERACTION_STORAGE_KEY = "sp_admin_interactions";
-export const INTERACTION_STORE_VERSION_KEY = "sp_interaction_store_version";
-export const INTERACTION_STORE_VERSION = 4;
+export const INTERACTION_STORAGE_KEY = "sulutProtectInteractions";
+export const DASHBOARD_DATA_VERSION_KEY = "sulutProtectDashboardDataVersion";
+export const DASHBOARD_DATA_VERSION = "v2-real-localstorage-clean-start";
 
-export const MOCK_INTERACTION_ID_PATTERN = /^INT-\d{4}$/;
+export const INTERACTION_CHANGE_EVENT = "sulutProtectInteractionsChanged";
+
+/** Legacy and mock keys cleared during one-time migration. */
+export const LEGACY_INTERACTION_KEYS = [
+  INTERACTION_STORAGE_KEY,
+  "sp_admin_interactions",
+  "sulutProtectMockInteractions",
+  "sulutProtectDashboardMockData",
+  "dashboardInteractions",
+  "mockInteractions",
+  "adminInteractions",
+  "sulutProtectAdminInteractions",
+  "faqInteractions",
+  "apisInteractions",
+  "formInteractions",
+  "sp_interaction_store_version",
+] as const;
 
 const REROUTING_UNIT_SET = new Set<string>(REROUTING_UNITS);
 
 export function isReroutingUnit(value: string): value is ReroutingUnit {
   return REROUTING_UNIT_SET.has(value);
-}
-
-export function isMockInteraction(record: InteractionRecord): boolean {
-  return MOCK_INTERACTION_ID_PATTERN.test(record.id);
-}
-
-export function isLiveInteraction(record: InteractionRecord): boolean {
-  return !isMockInteraction(record);
 }
 
 export function isFormulirInteraction(record: InteractionRecord): boolean {

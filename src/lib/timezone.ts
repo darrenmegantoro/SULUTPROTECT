@@ -1,18 +1,34 @@
 /** WITA (Waktu Indonesia Tengah) — UTC+8, zona waktu operasional KPwBI Sulut. */
 export const WITA_TIMEZONE = "Asia/Makassar";
 
-type WitaDateParts = {
-  year: number;
-  month: number;
-  day: number;
-};
+const WITA_MONTHS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "Mei",
+  "Jun",
+  "Jul",
+  "Agu",
+  "Sep",
+  "Okt",
+  "Nov",
+  "Des",
+];
 
-function getWitaDateParts(date: Date): WitaDateParts {
+function toDate(date: string | Date): Date {
+  return typeof date === "string" ? new Date(date) : date;
+}
+
+function readWitaParts(date: Date) {
   const formatter = new Intl.DateTimeFormat("en-CA", {
     timeZone: WITA_TIMEZONE,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
   });
 
   const parts = formatter.formatToParts(date);
@@ -23,42 +39,80 @@ function getWitaDateParts(date: Date): WitaDateParts {
     year: read("year"),
     month: read("month"),
     day: read("day"),
+    hour: read("hour"),
+    minute: read("minute"),
   };
 }
 
-/** Format ISO timestamp for display in WITA. */
-export function formatWitaDateTime(iso: string): string {
-  return new Date(iso).toLocaleString("id-ID", {
-    timeZone: WITA_TIMEZONE,
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    timeZoneName: "short",
-  });
+/** WITA calendar parts and compact date key `YYYY-MM-DD`. */
+export function getWitaParts(date: string | Date): {
+  year: number;
+  month: number;
+  day: number;
+  dateKey: string;
+} {
+  const { year, month, day } = readWitaParts(toDate(date));
+  const dateKey = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  return { year, month, day, dateKey };
 }
 
-/** Whether an ISO timestamp falls on the same calendar day as `ref` in WITA. */
-export function isSameWitaDay(iso: string, ref: Date = new Date()): boolean {
-  const a = getWitaDateParts(new Date(iso));
-  const b = getWitaDateParts(ref);
-  return a.year === b.year && a.month === b.month && a.day === b.day;
+/** Calendar day key `YYYY-MM-DD` in WITA for grouping and filters. */
+export function getWitaDateKey(date: string | Date): string {
+  return getWitaParts(date).dateKey;
 }
 
-/** Calendar day key `YYYY-MM-DD` in WITA for grouping. */
+/** Compact `YYYYMMDD` in WITA for interaction IDs. */
+export function getWitaCompactDateKey(date: string | Date = new Date()): string {
+  const { year, month, day } = getWitaParts(date);
+  return `${year}${String(month).padStart(2, "0")}${String(day).padStart(2, "0")}`;
+}
+
+/** Display: `02 Jul 2026, 14.30 WITA` */
+export function formatWitaDateTime(date: string | Date): string {
+  const d = toDate(date);
+  const { year, month, day, hour, minute } = readWitaParts(d);
+  const monthLabel = WITA_MONTHS[month - 1] ?? String(month);
+  const dayLabel = String(day).padStart(2, "0");
+  const hourLabel = String(hour).padStart(2, "0");
+  const minuteLabel = String(minute).padStart(2, "0");
+  return `${dayLabel} ${monthLabel} ${year}, ${hourLabel}.${minuteLabel} WITA`;
+}
+
+export function isSameWitaDay(
+  date: string | Date,
+  reference: Date = new Date()
+): boolean {
+  return getWitaDateKey(date) === getWitaDateKey(reference);
+}
+
+export function isSameWitaMonth(
+  date: string | Date,
+  reference: Date = new Date()
+): boolean {
+  const a = getWitaParts(date);
+  const b = getWitaParts(reference);
+  return a.year === b.year && a.month === b.month;
+}
+
+export function isSameWitaYear(
+  date: string | Date,
+  reference: Date = new Date()
+): boolean {
+  return getWitaParts(date).year === getWitaParts(reference).year;
+}
+
+/** @deprecated Use getWitaDateKey */
 export function getWitaDayKey(iso: string): string {
-  const { year, month, day } = getWitaDateParts(new Date(iso));
-  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  return getWitaDateKey(iso);
 }
 
 /** Label `d/m` for chart axis in WITA. */
 export function formatWitaChartDay(date: Date): string {
-  const { day, month } = getWitaDateParts(date);
+  const { day, month } = getWitaParts(date);
   return `${day}/${month}`;
 }
 
-/** Shift a reference date by `days` (calendar days in local JS Date; chart buckets use WITA keys). */
+/** Shift a reference date by `days` (calendar days in local JS Date). */
 export function shiftDays(date: Date, days: number): Date {
   const next = new Date(date);
   next.setDate(next.getDate() + days);
@@ -66,20 +120,7 @@ export function shiftDays(date: Date, days: number): Date {
 }
 
 export function getWitaTimestampFields(iso: string = new Date().toISOString()) {
-  const date = new Date(iso);
-  const formatter = new Intl.DateTimeFormat("en-CA", {
-    timeZone: WITA_TIMEZONE,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
-  const parts = formatter.formatToParts(date);
-  const read = (type: Intl.DateTimeFormatPartTypes) =>
-    Number(parts.find((part) => part.type === type)?.value ?? 0);
-  const year = read("year");
-  const month = read("month");
-  const day = read("day");
-
+  const { year, month, day } = getWitaParts(iso);
   return {
     createdAt: iso,
     createdAtWita: formatWitaDateTime(iso),

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, MessageCircle, Search, ExternalLink } from "lucide-react";
 import { FAQ_KATEGORI_FILTERS, faqBloomItems } from "@/data/faq";
 import { FRAUD_DEFINITION, mentionsFraud } from "@/data/glossary";
@@ -28,6 +28,27 @@ export default function FAQSection({ initialQuery = "" }: FAQSectionProps) {
   const [kategori, setKategori] = useState("Semua");
   const [openId, setOpenId] = useState<number | null>(null);
   const { openWithQuestion } = useChatbot();
+  const capturedInitialRef = useRef(false);
+
+  useEffect(() => {
+    if (capturedInitialRef.current || !initialQuery.trim()) return;
+    capturedInitialRef.current = true;
+    captureInteraction({
+      channel: "FAQ",
+      query: initialQuery.trim(),
+      status: "Baru",
+    });
+  }, [initialQuery]);
+
+  const captureSearch = (searchTerm: string) => {
+    const trimmed = searchTerm.trim();
+    if (!trimmed) return;
+    captureInteraction({
+      channel: "FAQ",
+      query: trimmed,
+      status: "Baru",
+    });
+  };
 
   const handleToggle = (item: FaqBloomItem) => {
     const willOpen = openId !== item.id;
@@ -35,12 +56,11 @@ export default function FAQSection({ initialQuery = "" }: FAQSectionProps) {
     if (willOpen) {
       captureInteraction({
         channel: "FAQ",
-        category: item.kategori,
-        query: item.pertanyaan,
+        query: query.trim() || item.pertanyaan,
         matchedFaqId: String(item.id),
         matchedFaqQuestion: item.pertanyaan,
-        recommendation: "Membaca FAQ",
-        isCompleted: true,
+        faqCategory: item.kategori,
+        status: "Baru",
       });
     }
   };
@@ -79,6 +99,10 @@ export default function FAQSection({ initialQuery = "" }: FAQSectionProps) {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") captureSearch(query);
+            }}
+            onBlur={() => captureSearch(query)}
             placeholder="Cari FAQ... pertanyaan, jawaban, atau kategori"
             className="w-full bg-transparent py-1.5 text-sm text-headlineBlack placeholder:text-captionGray focus:outline-none"
           />
@@ -200,6 +224,17 @@ export default function FAQSection({ initialQuery = "" }: FAQSectionProps) {
                           href={cta.href}
                           target="_blank"
                           rel="noopener noreferrer"
+                          onClick={() =>
+                            captureInteraction({
+                              channel: "FAQ",
+                              query: item.pertanyaan,
+                              matchedFaqId: String(item.id),
+                              matchedFaqQuestion: item.pertanyaan,
+                              faqCategory: item.kategori,
+                              recommendation: cta.label,
+                              status: "Baru",
+                            })
+                          }
                           className="inline-flex items-center gap-1.5 rounded-subtle bg-navyCore px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-navyDeep"
                         >
                           {cta.label}

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Pencil, RotateCcw } from "lucide-react";
-import { captureInteraction } from "@/lib/interactionCapture";
+import { createInteraction, updateInteraction } from "@/lib/interactionStore";
 import {
   BIDANG_LABELS,
   GUIDED_QUESTIONS,
@@ -12,6 +12,7 @@ import {
   TIME_LIMIT_CALENDAR_DAYS,
   TOTAL_STEPS,
 } from "@/data/guidedForm";
+import type { InteractionRecord } from "@/types/interactions";
 import type {
   ConsumerData,
   GuidedAnswers,
@@ -158,40 +159,60 @@ export default function FormulirPanduanPengaduan() {
   const displayedId: QuestionId | null = editingId ?? currentId;
   const displayedQuestion = displayedId ? getQuestion(displayedId) : null;
 
-  const capturedRef = useRef<ResultKey | null>(null);
+  const formRecordIdRef = useRef<string | null>(null);
+
+  const buildFormPatch = (): Partial<InteractionRecord> => {
+    const recommendation = resultKey
+      ? RESULT_RECOMMENDATION[resultKey]
+      : undefined;
+    const directedToBiBicara = recommendation?.includes("BI Bicara") ?? false;
+    const outsideBiAuthority =
+      recommendation?.includes("Di Luar Kewenangan BI") ?? false;
+
+    return {
+      consumerName: consumerData.nama,
+      phone: consumerData.telepon,
+      email: consumerData.email.trim() || undefined,
+      province: consumerData.provinsi,
+      cityOrRegency: consumerData.kotaKabupaten,
+      category: answers.q1 ? Q1_CATEGORY[answers.q1] : undefined,
+      organizerField: answers.q3 ? BIDANG_LABELS[answers.q3] : undefined,
+      answers: path.map((step) => ({
+        questionId: step.id,
+        questionText: getQuestion(step.id).question,
+        answer: answerLabel(step.id, step.value),
+      })),
+      answerSummary: [
+        `Nama: ${consumerData.nama}`,
+        `Provinsi: ${consumerData.provinsi}`,
+        `Kota/Kabupaten: ${consumerData.kotaKabupaten}`,
+        ...path.map(
+          (step) =>
+            `${getQuestion(step.id).question}: ${answerLabel(step.id, step.value)}`
+        ),
+      ],
+      recommendation,
+      resultKey: resultKey ?? undefined,
+      isCompleted: Boolean(resultKey && !editingId),
+      directedToBiBicara,
+      outsideBiAuthority,
+      isWithinBiAuthority:
+        Boolean(recommendation) &&
+        !outsideBiAuthority &&
+        !recommendation?.includes("LAPS SJK"),
+      status:
+        resultKey && !editingId
+          ? outsideBiAuthority
+            ? "Baru"
+            : "Selesai"
+          : "Baru",
+    };
+  };
+
   useEffect(() => {
-    if (resultKey && !editingId && capturedRef.current !== resultKey) {
-      capturedRef.current = resultKey;
-      captureInteraction({
-        channel: "Formulir",
-        consumerName: consumerData.nama,
-        phone: consumerData.telepon,
-        email: consumerData.email.trim() || undefined,
-        province: consumerData.provinsi,
-        cityOrRegency: consumerData.kotaKabupaten,
-        category: answers.q1 ? Q1_CATEGORY[answers.q1] : undefined,
-        organizerField: answers.q3 ? BIDANG_LABELS[answers.q3] : undefined,
-        answers: path.map((step) => ({
-          questionId: step.id,
-          questionText: getQuestion(step.id).question,
-          answer: answerLabel(step.id, step.value),
-        })),
-        answerSummary: [
-          `Nama: ${consumerData.nama}`,
-          `Provinsi: ${consumerData.provinsi}`,
-          `Kota/Kabupaten: ${consumerData.kotaKabupaten}`,
-          ...path.map(
-            (s) =>
-              `${getQuestion(s.id).question}: ${answerLabel(s.id, s.value)}`
-          ),
-        ],
-        recommendation: RESULT_RECOMMENDATION[resultKey],
-        resultKey,
-        isCompleted: true,
-      });
-    }
-    if (!resultKey) capturedRef.current = null;
-  }, [resultKey, editingId, answers, path, consumerData]);
+    if (!formRecordIdRef.current || !consumerComplete) return;
+    updateInteraction(formRecordIdRef.current, buildFormPatch());
+  }, [answers, path, consumerData, consumerComplete, resultKey, editingId]);
 
   useEffect(() => {
     setDraft(displayedId ? answers[displayedId] ?? "" : "");
@@ -252,6 +273,7 @@ export default function FormulirPanduanPengaduan() {
     setPhase("consumer");
     setConsumerComplete(false);
     setStarted(true);
+    formRecordIdRef.current = null;
   };
 
   const handleEdit = (id: QuestionId) => setEditingId(id);
@@ -398,6 +420,16 @@ export default function FormulirPanduanPengaduan() {
                   value={consumerData}
                   onChange={setConsumerData}
                   onContinue={() => {
+                    const record = createInteraction({
+                      channel: "Formulir",
+                      consumerName: consumerData.nama,
+                      phone: consumerData.telepon,
+                      email: consumerData.email.trim() || undefined,
+                      province: consumerData.provinsi,
+                      cityOrRegency: consumerData.kotaKabupaten,
+                      status: "Baru",
+                    });
+                    formRecordIdRef.current = record.id;
                     setConsumerComplete(true);
                     setPhase("triage");
                   }}

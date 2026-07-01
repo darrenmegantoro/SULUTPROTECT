@@ -1,37 +1,105 @@
 /**
  * Prototype interaction persistence (localStorage).
- * Replace this module with Supabase / Firebase / Vercel KV / REST API later.
+ * Single key: sulutProtectInteractions
  */
 
-import type { InteractionRecord } from "@/types/interactions";
-import type { InteractionCapturePayload } from "@/types/interactions";
-import {
-  INTERACTION_STORAGE_KEY,
-  INTERACTION_STORE_VERSION,
-  INTERACTION_STORE_VERSION_KEY,
-  isLiveInteraction,
-  isMockInteraction,
+import type {
+  InteractionChannel,
+  InteractionRecord,
+  ReroutingUnit,
 } from "@/types/interactions";
-import { buildCaptureRecord, normalizeInteractionRecord } from "@/lib/interactionNormalize";
-import { getWitaTimestampFields } from "@/lib/timezone";
-import { uid } from "@/lib/utils";
+import {
+  DASHBOARD_DATA_VERSION,
+  DASHBOARD_DATA_VERSION_KEY,
+  INTERACTION_CHANGE_EVENT,
+  INTERACTION_STORAGE_KEY,
+  LEGACY_INTERACTION_KEYS,
+} from "@/types/interactions";
+import { normalizeInteractionRecord } from "@/lib/interactionNormalize";
+import {
+  formatWitaDateTime,
+  getWitaCompactDateKey,
+  getWitaTimestampFields,
+} from "@/lib/timezone";
 
 const MAX_RECORDS = 500;
 const isBrowser = () => typeof window !== "undefined";
 
-function notifyChange(): void {
+let migrationDone = false;
+
+const CHANNEL_ID_PREFIX: Record<InteractionChannel, string> = {
+  Formulir: "FORM",
+  FAQ: "FAQ",
+  APIS: "CHTB",
+};
+
+export function generateInteractionId(
+  channel: InteractionChannel,
+  existingRecords: InteractionRecord[]
+): string {
+  const prefix = CHANNEL_ID_PREFIX[channel];
+  const datePart = getWitaCompactDateKey();
+  const sameDay = existingRecords.filter((record) =>
+    record.id.startsWith(`${prefix}-${datePart}-`)
+  );
+  const maxSeq = sameDay.reduce((max, record) => {
+    const seq = Number(record.id.split("-").pop() ?? "0");
+    return Number.isFinite(seq) ? Math.max(max, seq) : max;
+  }, 0);
+  return `${prefix}-${datePart}-${String(maxSeq + 1).padStart(4, "0")}`;
+}
+
+export function notifyInteractionChange(): void {
   if (!isBrowser()) return;
+  window.dispatchEvent(new Event(INTERACTION_CHANGE_EVENT));
   window.dispatchEvent(new Event("sp-admin-change"));
+}
+
+export function subscribeToInteractionChanges(
+  callback: () => void
+): () => void {
+  if (!isBrowser()) return () => undefined;
+
+  const onCustom = () => callback();
+  const onStorage = (event: StorageEvent) => {
+    if (event.key === INTERACTION_STORAGE_KEY) callback();
+  };
+
+  window.addEventListener(INTERACTION_CHANGE_EVENT, onCustom);
+  window.addEventListener("storage", onStorage);
+  return () => {
+    window.removeEventListener(INTERACTION_CHANGE_EVENT, onCustom);
+    window.removeEventListener("storage", onStorage);
+  };
+}
+
+export function runDashboardDataMigration(): void {
+  if (!isBrowser() || migrationDone) return;
+
+  const current = window.localStorage.getItem(DASHBOARD_DATA_VERSION_KEY);
+  if (current === DASHBOARD_DATA_VERSION) {
+    migrationDone = true;
+    return;
+  }
+
+  LEGACY_INTERACTION_KEYS.forEach((key) => {
+    window.localStorage.removeItem(key);
+  });
+  window.localStorage.setItem(DASHBOARD_DATA_VERSION_KEY, DASHBOARD_DATA_VERSION);
+  migrationDone = true;
+  notifyInteractionChange();
 }
 
 function readRaw(): InteractionRecord[] {
   if (!isBrowser()) return [];
+  runDashboardDataMigration();
+
   try {
     const raw = window.localStorage.getItem(INTERACTION_STORAGE_KEY);
-    const parsed = raw ? (JSON.parse(raw) as InteractionRecord[]) : [];
-    return parsed
-      .map((record) => normalizeInteractionRecord(record))
-      .filter(isLiveInteraction);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as InteractionRecord[];
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map((record) => normalizeInteractionRecord(record));
   } catch {
     return [];
   }
@@ -44,93 +112,112 @@ function writeRaw(records: InteractionRecord[]): void {
       INTERACTION_STORAGE_KEY,
       JSON.stringify(records.slice(0, MAX_RECORDS))
     );
-    notifyChange();
+    notifyInteractionChange();
   } catch {
     // Ignore quota errors in the prototype.
   }
 }
 
-/** Remove legacy mock rows and normalize schema on upgrade. */
-export function migrateInteractionStore(): void {
-  if (!isBrowser()) return;
-
-  const version = Number(
-    window.localStorage.getItem(INTERACTION_STORE_VERSION_KEY) ?? "0"
-  );
-
-  if (version >= INTERACTION_STORE_VERSION) return;
-
-  let records: InteractionRecord[] = [];
-  try {
-    const raw = window.localStorage.getItem(INTERACTION_STORAGE_KEY);
-    records = raw ? (JSON.parse(raw) as InteractionRecord[]) : [];
-  } catch {
-    records = [];
-  }
-
-  const normalized = records
-    .filter((record) => !isMockInteraction(record))
-    .map((record) => normalizeInteractionRecord(record));
-
-  writeRaw(normalized);
-  window.localStorage.setItem(
-    INTERACTION_STORE_VERSION_KEY,
-    String(INTERACTION_STORE_VERSION)
-  );
-}
-
-export function ensureInteractionStore(): void {
-  if (!isBrowser()) return;
-
-  if (!window.localStorage.getItem(INTERACTION_STORAGE_KEY)) {
-    writeRaw([]);
-  }
-
-  migrateInteractionStore();
-}
-
-export function listInteractions(): InteractionRecord[] {
-  ensureInteractionStore();
+export function getInteractions(): InteractionRecord[] {
   return readRaw();
 }
 
-export function listFormulirInteractions(): InteractionRecord[] {
-  return listInteractions().filter((record) => record.channel === "Formulir");
+export function getInteractionById(
+  id: string
+): InteractionRecord | undefined {
+  return readRaw().find((record) => record.id === id);
 }
 
-export function appendInteraction(
-  payload: InteractionCapturePayload
+export function createInteraction(
+  input: Partial<InteractionRecord> & { channel: InteractionChannel }
 ): InteractionRecord {
-  ensureInteractionStore();
-
+  runDashboardDataMigration();
+  const existing = readRaw();
   const createdAt = new Date().toISOString();
-  const record = buildCaptureRecord(payload, {
-    id: uid("INT"),
+  const record = normalizeInteractionRecord({
+    status: "Baru",
+    ...input,
+    id: generateInteractionId(input.channel, existing),
     ...getWitaTimestampFields(createdAt),
   });
 
-  writeRaw([record, ...readRaw()]);
+  writeRaw([record, ...existing]);
   return record;
 }
 
+export function updateInteraction(
+  id: string,
+  patch: Partial<InteractionRecord>
+): InteractionRecord | undefined {
+  const list = readRaw();
+  const index = list.findIndex((record) => record.id === id);
+  if (index < 0) return undefined;
+
+  const updated = normalizeInteractionRecord({
+    ...list[index],
+    ...patch,
+    updatedAt: new Date().toISOString(),
+    createdAtWita:
+      list[index].createdAtWita ??
+      formatWitaDateTime(list[index].createdAt),
+  });
+  list[index] = updated;
+  writeRaw(list);
+  return updated;
+}
+
+export function rerouteInteraction(
+  id: string,
+  unit: ReroutingUnit,
+  analystNote?: string
+): InteractionRecord | undefined {
+  return updateInteraction(id, {
+    reroutingUnit: unit,
+    reroutingStatus: `Rerouting ke ${unit}`,
+    status: "Perlu Tindak Lanjut",
+    analystNote: analystNote?.trim() || undefined,
+  });
+}
+
+export function resetInteractions(): void {
+  writeRaw([]);
+}
+
 export function saveInteractions(records: InteractionRecord[]): void {
-  ensureInteractionStore();
   writeRaw(records.map((record) => normalizeInteractionRecord(record)));
 }
 
+/** @deprecated Use getInteractions */
+export function listInteractions(): InteractionRecord[] {
+  return getInteractions();
+}
+
+/** @deprecated Use createInteraction */
+export function appendInteraction(
+  payload: Partial<InteractionRecord> & { channel: InteractionChannel }
+): InteractionRecord {
+  return createInteraction(payload);
+}
+
+/** @deprecated Use resetInteractions */
+export function clearAllInteractions(): void {
+  resetInteractions();
+}
+
+/** @deprecated Use runDashboardDataMigration */
+export function ensureInteractionStore(): void {
+  runDashboardDataMigration();
+}
+
+/** @deprecated Use updateInteraction */
 export function updateInteractionRecord(
   id: string,
   patch: Partial<InteractionRecord>
 ): InteractionRecord | null {
-  const list = readRaw();
-  const index = list.findIndex((record) => record.id === id);
-  if (index < 0) return null;
-
-  list[index] = normalizeInteractionRecord({ ...list[index], ...patch });
-  writeRaw(list);
-  return list[index];
+  return updateInteraction(id, patch) ?? null;
 }
 
-export function clearAllInteractions(): void {
-  writeRaw([]);
+/** @deprecated Use resetInteractions */
+export function migrateInteractionStore(): void {
+  runDashboardDataMigration();
 }

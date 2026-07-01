@@ -116,6 +116,7 @@ export function normalizeInteractionRecord(
     query: raw.query,
     matchedFaqId: raw.matchedFaqId,
     matchedFaqQuestion: raw.matchedFaqQuestion,
+    faqCategory: raw.faqCategory ?? (channel === "FAQ" ? raw.category : undefined),
     apisSource: raw.apisSource,
     matchedAuthorityRouteId: raw.matchedAuthorityRouteId,
     needsKnowledgeReview: raw.needsKnowledgeReview,
@@ -125,6 +126,7 @@ export function normalizeInteractionRecord(
       normalizeReroutingUnit(raw.assignedUnit),
     reroutingStatus: raw.reroutingStatus,
     analystNote: raw.analystNote ?? raw.notes,
+    updatedAt: raw.updatedAt,
   };
 }
 
