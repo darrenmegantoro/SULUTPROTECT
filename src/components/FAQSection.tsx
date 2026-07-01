@@ -37,7 +37,10 @@ export default function FAQSection({ initialQuery = "" }: FAQSectionProps) {
         channel: "FAQ",
         category: item.kategori,
         query: item.pertanyaan,
-        resultRecommendation: "Membaca FAQ",
+        matchedFaqId: String(item.id),
+        matchedFaqQuestion: item.pertanyaan,
+        recommendation: "Membaca FAQ",
+        isCompleted: true,
       });
     }
   };

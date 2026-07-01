@@ -10,6 +10,8 @@ import {
 import { uid } from "@/lib/utils";
 import { FRAUD_DEFINITION, mentionsFraud } from "@/data/glossary";
 import { captureInteraction } from "@/lib/interactionCapture";
+import { mapApisSource } from "@/lib/interactionNormalize";
+import { analyzeQuery, resolveAuthorityRoute } from "@/lib/apisRouting";
 import { APIS_GREETING } from "@/data/apis";
 
 export const WELCOME_TEXT = APIS_GREETING;
@@ -200,8 +202,22 @@ export function useChatMessages() {
 
     setMessages((prev) => [...prev, userMessage, assistantMessage]);
 
+    const recommendation =
+      result.type === "answer"
+        ? "Dijawab dari FAQ"
+        : result.type === "authority"
+          ? "Arahan kewenangan"
+          : result.type === "mixed"
+            ? "FAQ + arahan kewenangan"
+            : result.type === "clarification"
+              ? "Klarifikasi domain"
+              : "Tidak ditemukan di FAQ";
+
+    const signals = analyzeQuery(question);
+    const authorityRoute = resolveAuthorityRoute(signals);
+
     captureInteraction({
-      channel: "Asisten",
+      channel: "APIS",
       category:
         result.type === "answer"
           ? result.item.kategori
@@ -209,16 +225,23 @@ export function useChatMessages() {
             ? "Arahan kewenangan"
             : undefined,
       query: question,
-      resultRecommendation:
-        result.type === "answer"
-          ? "Dijawab dari FAQ"
-          : result.type === "authority"
-            ? "Arahan kewenangan"
-            : result.type === "mixed"
-              ? "FAQ + arahan kewenangan"
-              : result.type === "clarification"
-                ? "Klarifikasi domain"
-                : "Tidak ditemukan di FAQ",
+      matchedFaqId:
+        result.type === "answer" || result.type === "mixed"
+          ? String(result.item.id)
+          : undefined,
+      matchedFaqQuestion:
+        result.type === "answer" || result.type === "mixed"
+          ? result.item.pertanyaan
+          : undefined,
+      matchedAuthorityRouteId: authorityRoute?.id,
+      apisSource:
+        result.type !== "fallback"
+          ? mapApisSource(result.answerSource)
+          : undefined,
+      recommendation,
+      isCompleted: result.type !== "fallback",
+      needsKnowledgeReview:
+        result.type === "fallback" || recommendation === "Tidak ditemukan di FAQ",
     });
   }, []);
 

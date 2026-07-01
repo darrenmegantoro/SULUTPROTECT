@@ -2,44 +2,28 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Download, Eye, Check } from "lucide-react";
-import type { InteractionRecord, ReroutingStatus } from "@/types/admin";
+import type { InteractionRecord, InteractionStatus } from "@/types/interactions";
+import {
+  getInteractionLocation,
+  INTERACTION_STATUSES,
+  REROUTING_UNITS,
+} from "@/types/interactions";
 import { getInteractions, updateInteraction } from "@/lib/adminStore";
 import { getAuth } from "@/lib/auth";
 import { exportToCsv } from "@/lib/csv";
-import {
-  ADMIN_CATEGORIES,
-  ADMIN_UNITS,
-} from "@/data/adminConfig";
+import { ADMIN_CATEGORIES } from "@/data/adminConfig";
 import { cn } from "@/lib/utils";
 import InteractionDetail from "@/components/admin/InteractionDetail";
 import { APIS_NAME, formatInteractionChannel } from "@/data/apis";
+import { formatWitaDateTime } from "@/lib/timezone";
 
-const CHANNELS = ["FAQ", "Asisten", "Formulir"];
-const REROUTING: ReroutingStatus[] = [
-  "Baru",
-  "Perlu Review",
-  "Diteruskan ke Unit",
-  "Dalam Tindak Lanjut",
-  "Selesai",
-];
+const CHANNELS = ["FAQ", "APIS", "Formulir"];
 
-const STATUS_STYLE: Record<ReroutingStatus, string> = {
+const STATUS_STYLE: Record<InteractionStatus, string> = {
   Baru: "bg-accentRed/10 text-accentRed",
-  "Perlu Review": "bg-amber-100 text-amber-700",
-  "Diteruskan ke Unit": "bg-navyCore/10 text-navyCore",
-  "Dalam Tindak Lanjut": "bg-blue-100 text-blue-700",
+  "Perlu Tindak Lanjut": "bg-amber-100 text-amber-700",
   Selesai: "bg-emerald-100 text-emerald-700",
 };
-
-function formatDateTime(iso: string): string {
-  return new Date(iso).toLocaleString("id-ID", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
 
 export default function AdminInteractionsPage() {
   const [records, setRecords] = useState<InteractionRecord[]>([]);
@@ -65,8 +49,8 @@ export default function AdminInteractionsPage() {
     return records.filter((r) => {
       if (channel && r.channel !== channel) return false;
       if (category && r.category !== category) return false;
-      if (unit && r.assignedUnit !== unit) return false;
-      if (status && r.reroutingStatus !== status) return false;
+      if (unit && r.reroutingUnit !== unit) return false;
+      if (status && r.status !== status) return false;
       if (dateFrom && r.createdAt < new Date(dateFrom).toISOString())
         return false;
       if (dateTo) {
@@ -81,7 +65,7 @@ export default function AdminInteractionsPage() {
   const markReviewed = (id: string) => {
     updateInteraction(
       id,
-      { reviewed: true },
+      { status: "Selesai" },
       actor,
       "Interaksi ditandai sudah direview"
     );
@@ -92,19 +76,26 @@ export default function AdminInteractionsPage() {
       "interaksi-sulut-protect.csv",
       filtered.map((r) => ({
         ID: r.id,
-        Waktu: formatDateTime(r.createdAt),
+        Waktu: r.createdAtWita ?? formatWitaDateTime(r.createdAt),
         Kanal: formatInteractionChannel(r.channel),
         Kategori: r.category ?? "",
         Query: r.query ?? "",
-        Ringkasan: r.answerSummary ?? "",
-        Rekomendasi: r.resultRecommendation ?? "",
-        Lokasi: r.location ?? "",
-        Usia: r.demographic?.ageRange ?? "",
-        "Jenis Kelamin": r.demographic?.gender ?? "",
-        Unit: r.assignedUnit ?? "",
-        "Status Rerouting": r.reroutingStatus,
-        Direview: r.reviewed ? "Ya" : "Tidak",
-        Catatan: r.notes ?? "",
+        Rekomendasi: r.recommendation ?? "",
+        Provinsi: r.province ?? "",
+        "Kota/Kabupaten": r.cityOrRegency ?? "",
+        Lokasi: getInteractionLocation(r) ?? "",
+        Nama: r.consumerName ?? "",
+        Telepon: r.phone ?? "",
+        Email: r.email ?? "",
+        "Bidang Penyelenggara": r.organizerField ?? "",
+        "Hasil Formulir": r.resultKey ?? "",
+        "Sumber APIS": r.apisSource ?? "",
+        "Rute Kewenangan": r.matchedAuthorityRouteId ?? "",
+        "Perlu Review KB": r.needsKnowledgeReview ? "Ya" : "Tidak",
+        Unit: r.reroutingUnit ?? "",
+        Status: r.status ?? "",
+        "Status Rerouting": r.reroutingStatus ?? "",
+        Catatan: r.analystNote ?? "",
       }))
     );
   };
@@ -140,7 +131,6 @@ export default function AdminInteractionsPage() {
         </button>
       </header>
 
-      {/* Filters */}
       <div className="rounded-xl border border-hairlineDivider bg-white p-4 shadow-card">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <Select label="Kanal" value={channel} onChange={setChannel} options={CHANNELS} />
@@ -150,12 +140,12 @@ export default function AdminInteractionsPage() {
             onChange={setCategory}
             options={ADMIN_CATEGORIES}
           />
-          <Select label="Unit" value={unit} onChange={setUnit} options={ADMIN_UNITS} />
+          <Select label="Unit" value={unit} onChange={setUnit} options={REROUTING_UNITS} />
           <Select
-            label="Status Rerouting"
+            label="Status"
             value={status}
             onChange={setStatus}
-            options={REROUTING}
+            options={INTERACTION_STATUSES}
           />
           <div>
             <label className="mb-1 block text-xs font-semibold text-captionGray">
@@ -194,13 +184,12 @@ export default function AdminInteractionsPage() {
         </div>
       </div>
 
-      {/* Table */}
       <div className="overflow-x-auto rounded-xl border border-hairlineDivider bg-white shadow-card">
-        <table className="w-full min-w-[860px] text-left text-sm">
+        <table className="w-full min-w-[960px] text-left text-sm">
           <thead className="border-b border-hairlineDivider bg-offWhiteSection text-xs uppercase tracking-wide text-captionGray">
             <tr>
               <th className="px-4 py-3">ID</th>
-              <th className="px-4 py-3">Waktu</th>
+              <th className="px-4 py-3">Waktu (WITA)</th>
               <th className="px-4 py-3">Kanal</th>
               <th className="px-4 py-3">Kategori</th>
               <th className="px-4 py-3">Rekomendasi</th>
@@ -216,23 +205,29 @@ export default function AdminInteractionsPage() {
                   {r.id}
                 </td>
                 <td className="px-4 py-3 text-xs text-bodyTextGray">
-                  {formatDateTime(r.createdAt)}
+                  {r.createdAtWita ?? formatWitaDateTime(r.createdAt)}
                 </td>
                 <td className="px-4 py-3">{formatInteractionChannel(r.channel)}</td>
                 <td className="px-4 py-3 text-bodyTextGray">{r.category ?? "-"}</td>
                 <td className="px-4 py-3 text-bodyTextGray">
-                  {r.resultRecommendation ?? "-"}
+                  {r.recommendation ?? "-"}
                 </td>
-                <td className="px-4 py-3 text-bodyTextGray">{r.location ?? "-"}</td>
+                <td className="px-4 py-3 text-bodyTextGray">
+                  {getInteractionLocation(r) ?? "-"}
+                </td>
                 <td className="px-4 py-3">
-                  <span
-                    className={cn(
-                      "inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold",
-                      STATUS_STYLE[r.reroutingStatus]
-                    )}
-                  >
-                    {r.reroutingStatus}
-                  </span>
+                  {r.status ? (
+                    <span
+                      className={cn(
+                        "inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold",
+                        STATUS_STYLE[r.status]
+                      )}
+                    >
+                      {r.status}
+                    </span>
+                  ) : (
+                    "-"
+                  )}
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center justify-end gap-2">
@@ -244,7 +239,7 @@ export default function AdminInteractionsPage() {
                       <Eye className="h-3.5 w-3.5" aria-hidden="true" />
                       Detail
                     </button>
-                    {!r.reviewed ? (
+                    {r.status !== "Selesai" ? (
                       <button
                         type="button"
                         onClick={() => markReviewed(r.id)}

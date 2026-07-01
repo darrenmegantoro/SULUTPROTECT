@@ -1,5 +1,12 @@
-import type { InteractionRecord } from "@/types/admin";
+import type { InteractionRecord } from "@/types/interactions";
+import { getInteractionLocation } from "@/types/interactions";
 import { formatInteractionChannel } from "@/data/apis";
+import {
+  formatWitaChartDay,
+  getWitaDayKey,
+  isSameWitaDay,
+  shiftDays,
+} from "@/lib/timezone";
 
 export type Bucket = { label: string; value: number };
 
@@ -18,15 +25,6 @@ function tally(
     .sort((a, b) => b.value - a.value);
 }
 
-function isSameDay(iso: string, ref: Date): boolean {
-  const d = new Date(iso);
-  return (
-    d.getFullYear() === ref.getFullYear() &&
-    d.getMonth() === ref.getMonth() &&
-    d.getDate() === ref.getDate()
-  );
-}
-
 export function byCategory(records: InteractionRecord[]): Bucket[] {
   return tally(records, (r) => r.category);
 }
@@ -39,51 +37,47 @@ export function byChannel(records: InteractionRecord[]): Bucket[] {
 }
 
 export function byLocation(records: InteractionRecord[]): Bucket[] {
-  return tally(records, (r) => r.location);
+  return tally(records, (r) => getInteractionLocation(r));
 }
 
 export function byResult(records: InteractionRecord[]): Bucket[] {
-  return tally(records, (r) => r.resultRecommendation);
+  return tally(records, (r) => r.recommendation);
 }
 
-export function byAgeRange(records: InteractionRecord[]): Bucket[] {
-  return tally(records, (r) => r.demographic?.ageRange).sort((a, b) =>
-    a.label.localeCompare(b.label)
-  );
-}
-
-export function byGender(records: InteractionRecord[]): Bucket[] {
-  return tally(records, (r) => r.demographic?.gender);
+export function byOrganizerField(records: InteractionRecord[]): Bucket[] {
+  return tally(records, (r) => r.organizerField);
 }
 
 export function reroutingByUnit(records: InteractionRecord[]): Bucket[] {
   return tally(
-    records.filter((r) => r.assignedUnit),
-    (r) => r.assignedUnit
+    records.filter((r) => r.reroutingUnit),
+    (r) => r.reroutingUnit
   );
 }
 
-// Daily interaction trend for the last `days` days (oldest -> newest).
 export function dailyTrend(records: InteractionRecord[], days = 14): Bucket[] {
   const out: Bucket[] = [];
   const today = new Date();
+
   for (let i = days - 1; i >= 0; i -= 1) {
-    const ref = new Date(today);
-    ref.setDate(today.getDate() - i);
-    const value = records.filter((r) => isSameDay(r.createdAt, ref)).length;
-    const label = `${ref.getDate()}/${ref.getMonth() + 1}`;
-    out.push({ label, value });
+    const ref = shiftDays(today, -i);
+    const dayKey = getWitaDayKey(ref.toISOString());
+    const value = records.filter(
+      (r) => getWitaDayKey(r.createdAt) === dayKey
+    ).length;
+    out.push({ label: formatWitaChartDay(ref), value });
   }
+
   return out;
 }
 
-// Most frequent chatbot questions that could not be answered from FAQ.
 export function unansweredQuestions(records: InteractionRecord[]): Bucket[] {
   return tally(
     records.filter(
       (r) =>
-        r.channel === "Asisten" &&
-        r.resultRecommendation === "Tidak ditemukan di FAQ"
+        r.channel === "APIS" &&
+        (r.recommendation === "Tidak ditemukan di FAQ" ||
+          r.apisSource === "CLARIFICATION")
     ),
     (r) => r.query
   );
@@ -104,22 +98,24 @@ export type DashboardSummary = {
 };
 
 export function summarize(records: InteractionRecord[]): DashboardSummary {
-  const today = new Date();
   const cat = byCategory(records);
-  const countResult = (needle: string) =>
-    records.filter((r) => (r.resultRecommendation ?? "").includes(needle))
-      .length;
-
   return {
     total: records.length,
-    today: records.filter((r) => isSameDay(r.createdAt, today)).length,
+    today: records.filter((r) => isSameWitaDay(r.createdAt)).length,
     topCategory: cat[0]?.label ?? "-",
     needRerouting: records.filter(
-      (r) =>
-        r.reroutingStatus === "Baru" || r.reroutingStatus === "Perlu Review"
+      (r) => r.status === "Baru" || r.status === "Perlu Tindak Lanjut"
     ).length,
-    biBicara: countResult("BI Bicara"),
-    lapsSjk: countResult("LAPS SJK"),
-    outsideBI: countResult("Di Luar Kewenangan BI"),
+    biBicara: records.filter((r) => r.directedToBiBicara).length,
+    lapsSjk: records.filter((r) =>
+      (r.recommendation ?? "").includes("LAPS SJK")
+    ).length,
+    outsideBI: records.filter((r) => r.outsideBiAuthority).length,
   };
+}
+
+export function summarizeFormulir(
+  records: InteractionRecord[]
+): DashboardSummary {
+  return summarize(records.filter((r) => r.channel === "Formulir"));
 }

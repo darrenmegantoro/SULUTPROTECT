@@ -7,12 +7,17 @@ import type {
   AdminFormQuestion,
   AdminSettings,
   AuditEntry,
-  InteractionRecord,
 } from "@/types/admin";
+import type { InteractionRecord } from "@/types/interactions";
 import { FAQ_ITEMS, kategoriLabel } from "@/data/faq";
 import { GUIDED_QUESTIONS } from "@/data/guidedForm";
 import { DEFAULT_ADMIN_SETTINGS } from "@/data/adminConfig";
-import { generateMockInteractions } from "@/data/mockInteractions";
+import {
+  ensureInteractionStore,
+  listInteractions,
+  saveInteractions as persistInteractions,
+  updateInteractionRecord,
+} from "@/lib/interactionStore";
 import { uid } from "@/lib/utils";
 
 const KEYS = {
@@ -87,11 +92,10 @@ function seedFormQuestions(): AdminFormQuestion[] {
 
 export function ensureSeeded(): void {
   if (!isBrowser()) return;
+  ensureInteractionStore();
   if (!window.localStorage.getItem(KEYS.faq)) write(KEYS.faq, seedFaq());
   if (!window.localStorage.getItem(KEYS.form))
     write(KEYS.form, seedFormQuestions());
-  if (!window.localStorage.getItem(KEYS.interactions))
-    write(KEYS.interactions, generateMockInteractions());
   if (!window.localStorage.getItem(KEYS.settings))
     write(KEYS.settings, DEFAULT_ADMIN_SETTINGS);
   if (!window.localStorage.getItem(KEYS.audit)) write(KEYS.audit, []);
@@ -177,11 +181,12 @@ export function updateFormQuestion(
 // ----- Interactions ------------------------------------------------------
 
 export function getInteractions(): InteractionRecord[] {
-  return read<InteractionRecord[]>(KEYS.interactions, []);
+  ensureSeeded();
+  return listInteractions();
 }
 
 export function saveInteractions(list: InteractionRecord[]): void {
-  write(KEYS.interactions, list);
+  persistInteractions(list);
 }
 
 export function updateInteraction(
@@ -190,14 +195,9 @@ export function updateInteraction(
   actor?: string,
   auditAction?: string
 ): void {
-  const list = getInteractions();
-  const idx = list.findIndex((r) => r.id === id);
-  if (idx >= 0) {
-    list[idx] = { ...list[idx], ...patch };
-    saveInteractions(list);
-    if (actor && auditAction) {
-      addAudit({ actor, action: auditAction, target: id });
-    }
+  const updated = updateInteractionRecord(id, patch);
+  if (updated && actor && auditAction) {
+    addAudit({ actor, action: auditAction, target: id });
   }
 }
 

@@ -11,18 +11,18 @@ import {
   ShieldAlert,
   MapPin,
 } from "lucide-react";
-import type { AuditEntry, InteractionRecord } from "@/types/admin";
+import type { AuditEntry } from "@/types/admin";
+import type { InteractionRecord } from "@/types/interactions";
 import { getAudit, getInteractions } from "@/lib/adminStore";
 import {
-  byAgeRange,
   byCategory,
   byChannel,
-  byGender,
   byLocation,
+  byOrganizerField,
   byResult,
   dailyTrend,
   reroutingByUnit,
-  summarize,
+  summarizeFormulir,
   unansweredQuestions,
 } from "@/data/mockDashboard";
 import { PRIVACY_NOTE } from "@/data/adminConfig";
@@ -50,7 +50,8 @@ export default function AdminDashboardPage() {
     return () => window.removeEventListener("sp-admin-change", load);
   }, []);
 
-  const stats = summarize(records);
+  const stats = summarizeFormulir(records);
+  const hasFormulirData = records.some((r) => r.channel === "Formulir");
 
   return (
     <div className="space-y-6">
@@ -60,16 +61,24 @@ export default function AdminDashboardPage() {
         </h1>
         <p className="mt-2 max-w-3xl text-sm leading-relaxed text-bodyTextGray">
           Pantau interaksi pengaduan, tren kategori, kanal tindak lanjut, dan
-          kebutuhan rerouting antarunit KPwBI Sulawesi Utara.
+          kebutuhan rerouting antarunit KPwBI Sulawesi Utara. Kartu KPI dihitung
+          dari data Formulir Panduan Pengaduan yang tercatat di perangkat ini
+          (zona waktu WITA — Asia/Makassar).
         </p>
+        {!hasFormulirData ? (
+          <p className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+            Belum ada data Formulir Panduan Pengaduan. Isi formulir di situs
+            publik pada browser yang sama, lalu buka kembali dashboard ini.
+          </p>
+        ) : null}
         <p className="mt-2 text-xs text-captionGray">{PRIVACY_NOTE}</p>
       </header>
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard label="Total Interaksi" value={stats.total} icon={Activity} />
+        <StatCard label="Total Formulir" value={stats.total} icon={Activity} />
         <StatCard
-          label="Interaksi Hari Ini"
+          label="Formulir Hari Ini (WITA)"
           value={stats.today}
           icon={CalendarDays}
         />
@@ -103,7 +112,7 @@ export default function AdminDashboardPage() {
         />
         <StatCard
           label="Lokasi Terpantau"
-          value={byLocation(records).length}
+          value={byLocation(records.filter((r) => r.channel === "Formulir")).length}
           icon={MapPin}
         />
       </div>
@@ -111,15 +120,17 @@ export default function AdminDashboardPage() {
       {/* Trend */}
       <ChartCard
         title="Tren Interaksi Harian"
-        description="Jumlah interaksi selama 14 hari terakhir."
+        description="Jumlah interaksi selama 14 hari terakhir (WITA), semua kanal."
       >
         <LineChart data={dailyTrend(records, 14)} />
       </ChartCard>
 
       {/* Distributions */}
       <div className="grid gap-5 lg:grid-cols-2">
-        <ChartCard title="Distribusi Kategori Pengaduan">
-          <DonutChart data={byCategory(records)} />
+        <ChartCard title="Distribusi Kategori Pengaduan (Formulir)">
+          <DonutChart
+            data={byCategory(records.filter((r) => r.channel === "Formulir"))}
+          />
         </ChartCard>
         <ChartCard title="Distribusi Kanal Interaksi">
           <BarChart data={byChannel(records)} />
@@ -128,19 +139,22 @@ export default function AdminDashboardPage() {
           <BarChart data={byResult(records)} />
         </ChartCard>
         <ChartCard
-          title="Sebaran Lokasi Pengadu"
-          description="Placeholder visualisasi geospasial — data lokasi (mock) per kota/kabupaten."
+          title="Sebaran Lokasi Pengadu (Formulir)"
+          description="Lokasi dari data konsumen Formulir Panduan Pengaduan."
         >
-          <BarChart data={byLocation(records)} />
+          <BarChart
+            data={byLocation(records.filter((r) => r.channel === "Formulir"))}
+          />
         </ChartCard>
         <ChartCard
-          title="Ringkasan Demografi — Rentang Usia"
-          description="Data mock, tidak memuat identitas Konsumen."
+          title="Bidang Penyelenggara (Formulir)"
+          description="Distribusi bidang berdasarkan jawaban formulir."
         >
-          <BarChart data={byAgeRange(records)} />
-        </ChartCard>
-        <ChartCard title="Ringkasan Demografi — Jenis Kelamin">
-          <DonutChart data={byGender(records)} />
+          <BarChart
+            data={byOrganizerField(
+              records.filter((r) => r.channel === "Formulir")
+            )}
+          />
         </ChartCard>
         <ChartCard
           title="Status Rerouting per Unit"

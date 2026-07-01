@@ -1,18 +1,7 @@
-import type {
-  InteractionChannel,
-  InteractionRecord,
-  ReroutingStatus,
-} from "@/types/admin";
-import {
-  ADMIN_CATEGORIES,
-  ADMIN_UNITS,
-  AGE_RANGES,
-  GENDERS,
-  SULUT_LOCATIONS,
-} from "@/data/adminConfig";
-
-// Deterministic PRNG (mulberry32) so the seeded mock data is stable across
-// reloads and does not cause hydration mismatches.
+import type { InteractionChannel, InteractionRecord } from "@/types/interactions";
+import { REROUTING_UNITS } from "@/types/interactions";
+import { ADMIN_CATEGORIES, SULUT_LOCATIONS } from "@/data/adminConfig";
+import { deriveRoutingFlags } from "@/lib/interactionNormalize";
 function mulberry32(seed: number) {
   return function () {
     seed |= 0;
@@ -23,66 +12,31 @@ function mulberry32(seed: number) {
   };
 }
 
-const CHANNELS: InteractionChannel[] = ["FAQ", "Asisten", "Formulir"];
-
-const RESULTS_BY_CATEGORY: Record<string, string[]> = {
-  "Membutuhkan Penjelasan": [
-    "Diarahkan ke BI Bicara",
-    "Edukasi BI Bicara",
-  ],
-  "Sengketa dengan Lembaga Keuangan": [
-    "Perlu disampaikan ke Penyelenggara",
-    "Diarahkan ke LAPS SJK",
-  ],
-  "Dugaan Pelanggaran Ketentuan": [
-    "Di Luar Kewenangan BI",
-    "Perlu penelaahan awal",
-  ],
-  "Kerugian Konsumen": [
-    "Diarahkan ke BI Bicara",
-    "Diarahkan ke LAPS SJK",
-    "Di Luar Kewenangan BI",
-  ],
-};
+const CHANNELS: InteractionChannel[] = ["FAQ", "APIS", "Formulir"];
 
 const SAMPLE_QUERIES: Record<InteractionChannel, string[]> = {
   FAQ: [
     "batas waktu pengaduan",
     "dokumen yang perlu disiapkan",
     "apa itu fasilitasi",
-    "kanal LAPS SJK",
-    "korban fraud transfer dana",
-    "biaya layanan",
   ],
-  Asisten: [
+  APIS: [
     "Apakah harus mengadu ke Penyelenggara dulu?",
     "Berapa batas waktu pengaduan ke BI?",
     "Dokumen apa yang perlu disiapkan?",
-    "Kapan diarahkan ke LAPS SJK?",
-    "Apa yang harus dilakukan jika menjadi korban fraud?",
-    "Bagaimana cara investasi emas?",
   ],
   Formulir: [
     "Pengaduan kerugian finansial",
     "Sengketa dengan penyelenggara",
     "Dugaan pelanggaran ketentuan",
-    "Membutuhkan penjelasan layanan",
   ],
 };
-
-const REROUTING_STATUSES: ReroutingStatus[] = [
-  "Baru",
-  "Perlu Review",
-  "Diteruskan ke Unit",
-  "Dalam Tindak Lanjut",
-  "Selesai",
-];
 
 function pick<T>(rng: () => number, arr: T[]): T {
   return arr[Math.floor(rng() * arr.length)];
 }
 
-// Generate a stable set of mock interaction records over the last ~30 days.
+/** @deprecated Manual testing only — not auto-seeded in production flow. */
 export function generateMockInteractions(count = 64): InteractionRecord[] {
   const rng = mulberry32(20260628);
   const now = Date.now();
@@ -92,28 +46,15 @@ export function generateMockInteractions(count = 64): InteractionRecord[] {
   for (let i = 0; i < count; i += 1) {
     const channel = pick(rng, CHANNELS);
     const category = pick(rng, ADMIN_CATEGORIES);
-    const dayOffset = Math.floor(rng() * 30);
     const createdAt = new Date(
-      now - dayOffset * dayMs - Math.floor(rng() * dayMs)
+      now - Math.floor(rng() * 30) * dayMs - Math.floor(rng() * dayMs)
     ).toISOString();
-
-    // Chatbot occasionally fails to find an answer (low-confidence/unanswered).
-    const unanswered = channel === "Asisten" && rng() < 0.18;
-    const resultRecommendation = unanswered
-      ? "Tidak ditemukan di FAQ"
-      : pick(rng, RESULTS_BY_CATEGORY[category]);
-
-    const needsRerouting = resultRecommendation === "Di Luar Kewenangan BI";
-    const reroutingStatus: ReroutingStatus = needsRerouting
-      ? pick(rng, REROUTING_STATUSES)
-      : "Selesai";
-
-    const assignedUnit =
-      reroutingStatus === "Diteruskan ke Unit" ||
-      reroutingStatus === "Dalam Tindak Lanjut" ||
-      reroutingStatus === "Selesai"
-        ? pick(rng, ADMIN_UNITS)
-        : undefined;
+    const recommendation =
+      channel === "APIS" && rng() < 0.18
+        ? "Tidak ditemukan di FAQ"
+        : "Diarahkan ke BI Bicara";
+    const routing = deriveRoutingFlags(recommendation);
+    const location = pick(rng, SULUT_LOCATIONS).split(", ");
 
     records.push({
       id: `INT-${String(1000 + i)}`,
@@ -121,23 +62,15 @@ export function generateMockInteractions(count = 64): InteractionRecord[] {
       channel,
       category,
       query: pick(rng, SAMPLE_QUERIES[channel]),
-      answerSummary:
-        channel === "Formulir"
-          ? [category, resultRecommendation]
-          : undefined,
-      resultRecommendation,
-      location: pick(rng, SULUT_LOCATIONS),
-      demographic: {
-        ageRange: pick(rng, AGE_RANGES),
-        gender: pick(rng, GENDERS),
-      },
-      assignedUnit,
-      reroutingStatus,
-      reviewed: rng() < 0.5,
-      notes: undefined,
+      recommendation,
+      province: location[1],
+      cityOrRegency: location[0],
+      isCompleted: true,
+      status: routing.outsideBiAuthority ? "Baru" : "Selesai",
+      reroutingUnit: rng() < 0.4 ? pick(rng, REROUTING_UNITS) : undefined,
+      ...routing,
     });
   }
 
-  // Newest first.
   return records.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
 }

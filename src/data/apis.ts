@@ -15,6 +15,7 @@ export const APIS_AVATAR_PATH = "/images/apis-avatar.png";
 
 /** Maps stored interaction channel values to display labels. */
 export function formatInteractionChannel(channel: string): string {
-  if (channel === "Asisten") return APIS_NAME;
+  if (channel === "APIS" || channel === "Asisten") return APIS_NAME;
+  if (channel === "Formulir") return "Formulir Panduan Pengaduan";
   return channel;
 }

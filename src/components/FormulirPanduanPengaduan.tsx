@@ -164,8 +164,18 @@ export default function FormulirPanduanPengaduan() {
       capturedRef.current = resultKey;
       captureInteraction({
         channel: "Formulir",
+        consumerName: consumerData.nama,
+        phone: consumerData.telepon,
+        email: consumerData.email.trim() || undefined,
+        province: consumerData.provinsi,
+        cityOrRegency: consumerData.kotaKabupaten,
         category: answers.q1 ? Q1_CATEGORY[answers.q1] : undefined,
-        query: "Formulir Panduan Pengaduan",
+        organizerField: answers.q3 ? BIDANG_LABELS[answers.q3] : undefined,
+        answers: path.map((step) => ({
+          questionId: step.id,
+          questionText: getQuestion(step.id).question,
+          answer: answerLabel(step.id, step.value),
+        })),
         answerSummary: [
           `Nama: ${consumerData.nama}`,
           `Provinsi: ${consumerData.provinsi}`,
@@ -175,8 +185,9 @@ export default function FormulirPanduanPengaduan() {
               `${getQuestion(s.id).question}: ${answerLabel(s.id, s.value)}`
           ),
         ],
-        resultRecommendation: RESULT_RECOMMENDATION[resultKey],
-        location: `${consumerData.kotaKabupaten}, ${consumerData.provinsi}`,
+        recommendation: RESULT_RECOMMENDATION[resultKey],
+        resultKey,
+        isCompleted: true,
       });
     }
     if (!resultKey) capturedRef.current = null;

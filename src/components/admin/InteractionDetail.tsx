@@ -2,18 +2,15 @@
 
 import { useState } from "react";
 import { X } from "lucide-react";
-import type { InteractionRecord, ReroutingStatus } from "@/types/admin";
+import type { InteractionRecord, InteractionStatus, ReroutingUnit } from "@/types/interactions";
+import {
+  getInteractionLocation,
+  INTERACTION_STATUSES,
+  REROUTING_UNITS,
+} from "@/types/interactions";
 import { updateInteraction } from "@/lib/adminStore";
-import { ADMIN_UNITS } from "@/data/adminConfig";
 import { formatInteractionChannel } from "@/data/apis";
-
-const REROUTING: ReroutingStatus[] = [
-  "Baru",
-  "Perlu Review",
-  "Diteruskan ke Unit",
-  "Dalam Tindak Lanjut",
-  "Selesai",
-];
+import { formatWitaDateTime } from "@/lib/timezone";
 
 function Row({ label, value }: { label: string; value?: string }) {
   return (
@@ -35,17 +32,23 @@ export default function InteractionDetail({
   actor: string;
   onClose: () => void;
 }) {
-  const [unit, setUnit] = useState(record.assignedUnit ?? "");
-  const [status, setStatus] = useState<ReroutingStatus>(record.reroutingStatus);
-  const [notes, setNotes] = useState(record.notes ?? "");
+  const [unit, setUnit] = useState(record.reroutingUnit ?? "");
+  const [status, setStatus] = useState<InteractionStatus>(
+    record.status ?? "Baru"
+  );
+  const [reroutingStatus, setReroutingStatus] = useState(
+    record.reroutingStatus ?? ""
+  );
+  const [notes, setNotes] = useState(record.analystNote ?? "");
 
   const handleSave = () => {
     updateInteraction(
       record.id,
       {
-        assignedUnit: unit || undefined,
-        reroutingStatus: status,
-        notes: notes || undefined,
+        reroutingUnit: unit ? (unit as ReroutingUnit) : undefined,
+        status,
+        reroutingStatus: reroutingStatus || undefined,
+        analystNote: notes || undefined,
       },
       actor,
       "Interaksi diperbarui (rerouting/catatan)"
@@ -76,17 +79,49 @@ export default function InteractionDetail({
 
         <div className="space-y-4 px-5 py-4">
           <div className="divide-y divide-hairlineDivider">
+            <Row
+              label="Waktu (WITA)"
+              value={record.createdAtWita ?? formatWitaDateTime(record.createdAt)}
+            />
             <Row label="Kanal" value={formatInteractionChannel(record.channel)} />
             <Row label="Kategori" value={record.category} />
             <Row label="Query / Pertanyaan" value={record.query} />
+            <Row label="Rekomendasi" value={record.recommendation} />
+            <Row label="Hasil Formulir" value={record.resultKey} />
+            <Row label="Bidang Penyelenggara" value={record.organizerField} />
+            <Row label="Nama Konsumen" value={record.consumerName} />
+            <Row label="Telepon" value={record.phone} />
+            <Row label="Email" value={record.email} />
+            <Row label="Provinsi" value={record.province} />
+            <Row label="Kota/Kabupaten" value={record.cityOrRegency} />
+            <Row label="Lokasi" value={getInteractionLocation(record)} />
+            <Row label="FAQ Cocok" value={record.matchedFaqQuestion} />
+            <Row label="Sumber APIS" value={record.apisSource} />
+            <Row label="Rute Kewenangan" value={record.matchedAuthorityRouteId} />
             <Row
-              label="Rekomendasi"
-              value={record.resultRecommendation}
+              label="Perlu Review KB"
+              value={record.needsKnowledgeReview ? "Ya" : "Tidak"}
             />
-            <Row label="Lokasi" value={record.location} />
-            <Row label="Usia" value={record.demographic?.ageRange} />
-            <Row label="Jenis Kelamin" value={record.demographic?.gender} />
           </div>
+
+          {record.answers && record.answers.length > 0 ? (
+            <div>
+              <p className="text-xs font-semibold text-captionGray">
+                Jawaban Formulir
+              </p>
+              <ul className="mt-1 space-y-2 text-sm text-bodyTextGray">
+                {record.answers.map((entry) => (
+                  <li key={entry.questionId}>
+                    <span className="font-medium text-headlineBlack">
+                      {entry.questionText}
+                    </span>
+                    <br />
+                    {entry.answer}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
 
           {record.answerSummary && record.answerSummary.length > 0 ? (
             <div>
@@ -101,7 +136,6 @@ export default function InteractionDetail({
             </div>
           ) : null}
 
-          {/* Rerouting controls */}
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
               <label className="mb-1 block text-xs font-semibold text-captionGray">
@@ -113,7 +147,7 @@ export default function InteractionDetail({
                 className="w-full rounded-subtle border border-hairlineDivider px-3 py-2 text-sm"
               >
                 <option value="">Belum ditugaskan</option>
-                {ADMIN_UNITS.map((u) => (
+                {REROUTING_UNITS.map((u) => (
                   <option key={u} value={u}>
                     {u}
                   </option>
@@ -122,14 +156,16 @@ export default function InteractionDetail({
             </div>
             <div>
               <label className="mb-1 block text-xs font-semibold text-captionGray">
-                Status Rerouting
+                Status
               </label>
               <select
                 value={status}
-                onChange={(e) => setStatus(e.target.value as ReroutingStatus)}
+                onChange={(e) =>
+                  setStatus(e.target.value as InteractionStatus)
+                }
                 className="w-full rounded-subtle border border-hairlineDivider px-3 py-2 text-sm"
               >
-                {REROUTING.map((s) => (
+                {INTERACTION_STATUSES.map((s) => (
                   <option key={s} value={s}>
                     {s}
                   </option>
@@ -140,7 +176,20 @@ export default function InteractionDetail({
 
           <div>
             <label className="mb-1 block text-xs font-semibold text-captionGray">
-              Catatan Internal (Decision Support)
+              Status Rerouting (detail)
+            </label>
+            <input
+              type="text"
+              value={reroutingStatus}
+              onChange={(e) => setReroutingStatus(e.target.value)}
+              placeholder="Contoh: Diteruskan ke Unit"
+              className="w-full rounded-subtle border border-hairlineDivider px-3 py-2 text-sm"
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-captionGray">
+              Catatan Analis
             </label>
             <textarea
               value={notes}
